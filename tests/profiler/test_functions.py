@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from parafun.profiler.functions import profile
+from parfun.profiler.functions import profile
 
 
 class TestProfilerFunctions(unittest.TestCase):

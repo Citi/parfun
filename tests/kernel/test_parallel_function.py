@@ -1,7 +1,7 @@
 import unittest
 
-from parafun.entry_point import set_parallel_backend
-from parafun.kernel.parallel_function import ParallelFunction
+from parfun.entry_point import set_parallel_backend
+from parfun.kernel.parallel_function import ParallelFunction
 
 
 class TestParallelFunction(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from parafun.backend.local_single_process import LocalSingleProcessBackend
+from parfun.backend.local_single_process import LocalSingleProcessBackend
 from tests.backend.mixins import BackendEngineTestCase
 
 

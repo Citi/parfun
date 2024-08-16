@@ -1,6 +1,6 @@
 import unittest
 
-from parafun.backend.dask import DaskLocalClusterBackend, DaskRemoteClusterBackend
+from parfun.backend.dask import DaskLocalClusterBackend, DaskRemoteClusterBackend
 from tests.backend.mixins import BackendEngineTestCase
 from tests.backend.utility import warmup_workers
 

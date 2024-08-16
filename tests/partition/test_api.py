@@ -3,11 +3,11 @@ import unittest
 
 import pandas as pd
 
-from parafun.kernel.function_signature import NamedArguments
-from parafun.partition.api import all_arguments, multiple_arguments, per_argument
-from parafun.partition.collection import list_by_chunk
-from parafun.partition.dataframe import df_by_group, df_by_row
-from parafun.partition.utility import with_partition_size
+from parfun.kernel.function_signature import NamedArguments
+from parfun.partition.api import all_arguments, multiple_arguments, per_argument
+from parfun.partition.collection import list_by_chunk
+from parfun.partition.dataframe import df_by_group, df_by_row
+from parfun.partition.utility import with_partition_size
 
 
 class TestPartitionAPI(unittest.TestCase):

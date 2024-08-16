@@ -1,9 +1,9 @@
 import random
 import unittest
 
-from parafun.entry_point import set_parallel_backend
-from parafun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
-from parafun.profiler.object import PartitionedTaskTrace
+from parfun.entry_point import set_parallel_backend
+from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
+from parfun.profiler.object import PartitionedTaskTrace
 
 
 class TestLinearRegressionEstimator(unittest.TestCase):

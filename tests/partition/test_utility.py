@@ -1,7 +1,7 @@
 import unittest
 
-from parafun.partition.collection import list_by_chunk
-from parafun.partition.utility import with_partition_size
+from parfun.partition.collection import list_by_chunk
+from parfun.partition.utility import with_partition_size
 
 
 class TestPartitionUtility(unittest.TestCase):

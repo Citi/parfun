@@ -17,4 +17,4 @@ _doc: requirements.txt
 	pip install -r docs/requirements_docs.txt; \
 	pip install -r requirements.txt; \
 	cd docs; make clean && make html
-	zip -r build/parafun_docs.zip docs/build/html/*
+	zip -r build/parfun_docs.zip docs/build/html/*

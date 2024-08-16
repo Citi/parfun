@@ -1,7 +1,7 @@
 API
 ===
 
-.. automodule:: parafun
+.. automodule:: parfun
     :members:
 
 .. toctree::

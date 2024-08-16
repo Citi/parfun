@@ -1,5 +1,5 @@
 Entry Point
 ===========
 
-.. automodule:: parafun.entry_point
+.. automodule:: parfun.entry_point
     :members:

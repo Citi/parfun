@@ -2,8 +2,8 @@ import logging
 import unittest
 from typing import Callable, Generator, Iterable, Tuple
 
-from parafun.decorators import parafun
-from parafun.entry_point import set_parallel_backend
+from parfun.decorators import parfun
+from parfun.entry_point import set_parallel_backend
 
 
 def factorial_partition_function(
@@ -28,7 +28,7 @@ def factorial_combine_function(values: Iterable[int]) -> int:
     return reduce(lambda x, y: x * y, values, 1)
 
 
-@parafun(
+@parfun(
     partition_on=("start", "end"), partition_with=factorial_partition_function, combine_with=factorial_combine_function
 )
 def factorial_computing_using_loop(start: int, end: int, callback: Callable = lambda x: x) -> int:
@@ -54,7 +54,7 @@ def factorial_computing_using_multiprocess(start: int, end: int) -> int:
     return factorial_combine_function(results)
 
 
-@parafun(
+@parfun(
     partition_on=("start", "end"), partition_with=factorial_partition_function, combine_with=factorial_combine_function
 )
 def factorial_computing_using_recursive(start: int, end: int) -> int:

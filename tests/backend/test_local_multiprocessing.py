@@ -1,6 +1,6 @@
 import unittest
 
-from parafun.backend.local_multiprocessing import LocalMultiprocessingBackend
+from parfun.backend.local_multiprocessing import LocalMultiprocessingBackend
 from tests.backend.mixins import BackendEngineTestCase
 from tests.backend.utility import warmup_workers
 

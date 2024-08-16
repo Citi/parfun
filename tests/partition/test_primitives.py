@@ -6,12 +6,12 @@ from typing import Generator, List, Tuple
 try:
     import pandas as pd
 except ImportError:
-    raise ImportError("Pandas dependency missing. Use `pip install 'parafun[pandas]'` to install Pandas.")
+    raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parafun.partition.collection import list_by_chunk
-from parafun.partition.dataframe import df_by_group, df_by_row
-from parafun.partition.primitives import partition_flatmap, partition_map, partition_zip
-from parafun.partition.utility import with_partition_size
+from parfun.partition.collection import list_by_chunk
+from parfun.partition.dataframe import df_by_group, df_by_row
+from parfun.partition.primitives import partition_flatmap, partition_map, partition_zip
+from parfun.partition.utility import with_partition_size
 
 
 class TestPartitionPrimitives(unittest.TestCase):

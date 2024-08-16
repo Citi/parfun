@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 
 # -- Project information -----------------------------------------------------
 
-project = "Parafun"
+project = "Parfun"
 author = "Citi"
 
 
-version = __import__("parafun").__version__
+version = __import__("parfun").__version__
 release = f"{version}-py3-none-any"
 
 rst_prolog = f"""

@@ -1,5 +1,5 @@
 Utility functions
 =================
 
-.. automodule:: parafun.functions
+.. automodule:: parfun.functions
     :members:

@@ -1,8 +1,8 @@
 import unittest
 
-from parafun.backend.local_multiprocessing import LocalMultiprocessingBackend
-from parafun.backend.local_single_process import LocalSingleProcessBackend
-from parafun.entry_point import get_parallel_backend, set_parallel_backend_context
+from parfun.backend.local_multiprocessing import LocalMultiprocessingBackend
+from parfun.backend.local_single_process import LocalSingleProcessBackend
+from parfun.entry_point import get_parallel_backend, set_parallel_backend_context
 
 
 class TestContext(unittest.TestCase):

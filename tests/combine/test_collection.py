@@ -1,6 +1,6 @@
 import unittest
 
-from parafun.combine.collection import list_concat, unzip
+from parfun.combine.collection import list_concat, unzip
 
 
 class TestCombineCollection(unittest.TestCase):
