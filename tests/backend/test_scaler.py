@@ -1,6 +1,6 @@
 import unittest
 
-from parafun.backend.scaler import ScalerLocalBackend, ScalerRemoteBackend
+from parfun.backend.scaler import ScalerLocalBackend, ScalerRemoteBackend
 from tests.backend.mixins import BackendEngineTestCase
 from tests.backend.utility import warmup_workers
 

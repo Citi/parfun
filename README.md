@@ -3,7 +3,7 @@
     <img src="https://github.com/citi.png" alt="Citi" width="80" height="80">
   </a>
 
-  <h3 align="center">Citi/parafun</h3>
+  <h3 align="center">Citi/parfun</h3>
 
   <p align="center">
     Lightweight parallelisation library for Python.
@@ -11,26 +11,26 @@
 
   <p align="center">
     <a href="./LICENSE">
-        <img src="https://img.shields.io/github/license/citi/parafun?label=license&colorA=0f1632&colorB=255be3">
+        <img src="https://img.shields.io/github/license/citi/parfun?label=license&colorA=0f1632&colorB=255be3">
     </a>
   </p>
 </div>
 
 <br />
 
-Parafun is a lightweight library providing helpers to **make it easy to write and run a Python function in parallel
+Parfun is a lightweight library providing helpers to **make it easy to write and run a Python function in parallel
 and distributed systems**.
 
-The main feature of the library is its `@parafun` decorator that transparently executes standard Python functions
+The main feature of the library is its `@parfun` decorator that transparently executes standard Python functions
 following the [map-reduce](https://en.wikipedia.org/wiki/MapReduce) pattern:
 
 ```Python
-from parafun import parafun
-from parafun.combine.collection import list_concat
-from parafun.partition.api import per_argument
-from parafun.partition.collection import list_by_chunk
+from parfun import parfun
+from parfun.combine.collection import list_concat
+from parfun.partition.api import per_argument
+from parfun.partition.collection import list_by_chunk
 
-@parafun(
+@parfun(
     split=per_argument(
         values=list_by_chunk
     ),
@@ -74,8 +74,8 @@ Your contributions are at the core of making this a true open source project. An
 We welcome you to:
 
 - Fix typos or touch up documentation
-- Share your opinions on [existing issues](https://github.com/citi/parafun/issues)
-- Help expand and improve our library by [opening a new issue](https://github.com/citi/parafun/issues/new)
+- Share your opinions on [existing issues](https://github.com/citi/parfun/issues)
+- Help expand and improve our library by [opening a new issue](https://github.com/citi/parfun/issues/new)
 
 Please review our [community contribution guidelines](https://github.com/Citi/.github/blob/main/CONTRIBUTING.md) and
 [functional contribution guidelines](./CONTRIBUTING.md) to get started 👍.
@@ -95,5 +95,5 @@ This project is distributed under the [Apache-2.0 License](https://www.apache.or
 
 ## Contact
 
-If you have a query or require support with this project, [raise an issue](https://github.com/Citi/parafun/issues).
+If you have a query or require support with this project, [raise an issue](https://github.com/Citi/parfun/issues).
 Otherwise, reach out to [opensource@citi.com](mailto:opensource@citi.com).

@@ -2,7 +2,7 @@ import inspect
 import unittest
 from collections import OrderedDict
 
-from parafun.kernel.function_signature import FunctionSignature
+from parfun.kernel.function_signature import FunctionSignature
 
 
 class TestFunctionSignature(unittest.TestCase):

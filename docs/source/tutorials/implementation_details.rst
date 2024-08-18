@@ -3,7 +3,7 @@ Implementation details
 
 .. note::
 
-    This section provides additional design insights on how we designed the Parafun library. **Most users should not be
+    This section provides additional design insights on how we designed the Parfun library. **Most users should not be
     required to go through this section in detail**.
 
 
@@ -19,7 +19,7 @@ Implementation
 --------------
 
 Our distributed system **relies on either a local or a distributed worker pool to manage and execute tasks** on multiple
-machines (see the :py:class:`~parafun.backend.mixins.BackendEngine` interface).
+machines (see the :py:class:`~parfun.backend.mixins.BackendEngine` interface).
 
 **This parallel engine is responsible of queuing and executing the partitioned tasks**. The library relies on
 **heuristics to determine the ideal partition size** based on feedback from the previously executed tasks.

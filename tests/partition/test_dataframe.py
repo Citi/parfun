@@ -5,10 +5,10 @@ from typing import List
 try:
     import pandas as pd
 except ImportError:
-    raise ImportError("Pandas dependency missing. Use `pip install 'parafun[pandas]'` to install Pandas.")
+    raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parafun.partition.dataframe import df_by_group, df_by_row
-from parafun.partition.utility import with_partition_size
+from parfun.partition.dataframe import df_by_group, df_by_row
+from parfun.partition.utility import with_partition_size
 from tests.test_helpers import random_df
 
 

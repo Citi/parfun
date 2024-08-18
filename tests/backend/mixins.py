@@ -1,6 +1,6 @@
 import abc
 
-from parafun.backend.mixins import BackendEngine
+from parfun.backend.mixins import BackendEngine
 from tests.backend.utility import (
     is_backend_blocking,
     is_backend_handling_exceptions,

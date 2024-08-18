@@ -1,17 +1,17 @@
 Backend
 =======
 
-.. automodule:: parafun.backend.mixins
+.. automodule:: parfun.backend.mixins
     :members:
 
-.. automodule:: parafun.backend.local_single_process
+.. automodule:: parfun.backend.local_single_process
     :members:
 
-.. automodule:: parafun.backend.local_multiprocessing
+.. automodule:: parfun.backend.local_multiprocessing
     :members:
 
-.. automodule:: parafun.backend.dask
+.. automodule:: parfun.backend.dask
     :members:
 
-.. automodule:: parafun.backend.scaler
+.. automodule:: parfun.backend.scaler
     :members:

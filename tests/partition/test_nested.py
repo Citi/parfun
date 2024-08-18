@@ -3,12 +3,12 @@ import unittest
 try:
     import pandas as pd
 except ImportError:
-    raise ImportError("Pandas dependency missing. Use `pip install 'parafun[pandas]'` to install Pandas.")
+    raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parafun.partition.collection import list_by_chunk
-from parafun.partition.dataframe import df_by_group
-from parafun.partition.nested import partition_nested
-from parafun.partition.utility import with_partition_size
+from parfun.partition.collection import list_by_chunk
+from parfun.partition.dataframe import df_by_group
+from parfun.partition.nested import partition_nested
+from parfun.partition.utility import with_partition_size
 
 
 class TestPartitionNested(unittest.TestCase):

@@ -1,18 +1,18 @@
 Combining functions
 ===================
 
-.. automodule:: parafun.combine
+.. automodule:: parfun.combine
 
 
 Collections
 -----------
 
-.. automodule:: parafun.combine.collection
+.. automodule:: parfun.combine.collection
     :members:
 
 
 Dataframes
 ----------
 
-.. automodule:: parafun.combine.dataframe
+.. automodule:: parfun.combine.dataframe
     :members:

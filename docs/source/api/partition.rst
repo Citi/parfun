@@ -1,36 +1,36 @@
 Partitioning functions
 ======================
 
-.. automodule:: parafun.partition
+.. automodule:: parfun.partition
 
 
 Interface
 ---------
 
-.. automodule:: parafun.partition.object
+.. automodule:: parfun.partition.object
     :members:
 
 
-.. automodule:: parafun.partition.api
+.. automodule:: parfun.partition.api
     :members:
 
 
 Collections
 -----------
 
-.. automodule:: parafun.partition.collection
+.. automodule:: parfun.partition.collection
     :members:
 
 
 Dataframes
 ----------
 
-.. automodule:: parafun.partition.dataframe
+.. automodule:: parfun.partition.dataframe
     :members:
 
 
 Utilities
 ---------
 
-.. automodule:: parafun.partition.utility
+.. automodule:: parfun.partition.utility
     :members:

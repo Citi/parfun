@@ -5,7 +5,7 @@ Quick start
 When to use it
 --------------
 
-**Parafun** works well with computations that are CPU intensive and that can be easily portioned in independent
+**Parfun** works well with computations that are CPU intensive and that can be easily portioned in independent
 sub-tasks.
 
 
@@ -29,11 +29,11 @@ Other tasks cannot easily be parallelized:
 Setup
 -----
 
-First, add the ``parafun`` package to your *requirements.txt* file, or install it using PIP:
+First, add the ``parfun`` package to your *requirements.txt* file, or install it using PIP:
 
 .. code:: bash
 
-    pip install parafun
+    pip install parfun
 
 
 The command here-above will **only install the base package**. If you wish to use the Scaler or Dask distributed
@@ -41,19 +41,19 @@ backends, or to enable Pandas' support, use the `scaler`, `dask` and/or `scaler`
 
 .. code:: bash
 
-    pip install parafun[dask,scaler,pandas]
+    pip install parfun[dask,scaler,pandas]
 
 
 The library relies on a registered computing backend to schedule and distribute sub-tasks among a group of allocated
 workers.
 
 **Before using the library, the user should select the backend instance to use**. This can either be done process wise
-with the :py:func:`~parafun.entry_point.set_parallel_backend` or within a Python context with
-:py:func:`~parafun.entry_point.set_parallel_backend_context`.
+with the :py:func:`~parfun.entry_point.set_parallel_backend` or within a Python context with
+:py:func:`~parfun.entry_point.set_parallel_backend_context`.
 
 .. code:: python
 
-    from parafun.entry_point import set_parallel_backend, set_parallel_backend_context
+    from parfun.entry_point import set_parallel_backend, set_parallel_backend_context
 
     # Set the parallel backend process-wise.
     set_parallel_backend("local_multiprocessing")
@@ -63,7 +63,7 @@ with the :py:func:`~parafun.entry_point.set_parallel_backend` or within a Python
         ... # Will run with the "dask_remote" backend.
 
 
-See :py:func:`~parafun.entry_point.set_parallel_backend` for a description of the available backend options.
+See :py:func:`~parfun.entry_point.set_parallel_backend` for a description of the available backend options.
 
 
 Your first parallel function
@@ -135,7 +135,7 @@ Our ideal parallel computation will thus look like this:
 .. image:: images/parallel_function.png
 
 This architecture is a well-known **parallelization pattern named map/reduce** or scatter/gather. **We introduce a new**
-:py:func:`~parafun.decorators.parafun` **decorator** that you can use to easily distribute the computation of functions
+:py:func:`~parfun.decorators.parfun` **decorator** that you can use to easily distribute the computation of functions
 with minimal code change or knowledge of the underlying computing architecture.
 
 The decorator requires the user to specify how to partition the input data (which arguments, and how these should be
@@ -144,12 +144,12 @@ partitioned), and how to combine the resulting sub-results:
 
 .. code-block:: python
 
-    from parafun import parafun
-    from parafun.combine.dataframe import df_concat
-    from parafun.partition.api import per_argument
-    from parafun.partition.dataframe import df_by_group
+    from parfun import parfun
+    from parfun.combine.dataframe import df_concat
+    from parfun.partition.api import per_argument
+    from parfun.partition.dataframe import df_by_group
 
-    @parafun(
+    @parfun(
         split=per_argument(df=df_by_group(by="country"))
         combine_with=df_concat,
     )
@@ -173,24 +173,24 @@ times:
 Advanced partitioning
 ---------------------
 
-As seen in the example here-above, the ``@parafun`` decorator accepts a partitioning function (``split``), and a
+As seen in the example here-above, the ``@parfun`` decorator accepts a partitioning function (``split``), and a
 combining function (``combine_with``).
 
-Parafun provides an :doc:`extensive set of partitioning function and helpers</api/partition>`.
+Parfun provides an :doc:`extensive set of partitioning function and helpers</api/partition>`.
 
-Previously, we applied a single partitioning function (:py:func:`~parafun.partition.dataframe.df_by_group`) on a
-single argument. However, we could also use :py:func:`~parafun.partition.api.per_argument` to apply different
+Previously, we applied a single partitioning function (:py:func:`~parfun.partition.dataframe.df_by_group`) on a
+single argument. However, we could also use :py:func:`~parfun.partition.api.per_argument` to apply different
 partitioning functions on various parameters:
 
 
 .. code-block:: python
 
-    from parafun import parafun
-    from parafun.partition.api import per_argument
-    from parafun.partition.collection import list_by_chunk
-    from parafun.partition.dataframe import df_by_row
+    from parfun import parfun
+    from parfun.partition.api import per_argument
+    from parfun.partition.collection import list_by_chunk
+    from parfun.partition.dataframe import df_by_row
 
-    @parafun(
+    @parfun(
         split=per_argument(
             values=list_by_chunk,
             df_1=df_by_row,
@@ -202,8 +202,8 @@ partitioning functions on various parameters:
         ...
 
 
-We are using two partitioning functions, :py:func:`~parafun.partition.collection.list_by_chunk` and
-:py:func:`~parafun.partition.dataframe.df_by_row`. These splits the arguments in equally sized partitions. It's
+We are using two partitioning functions, :py:func:`~parfun.partition.collection.list_by_chunk` and
+:py:func:`~parfun.partition.dataframe.df_by_row`. These splits the arguments in equally sized partitions. It's
 semantically equivalent to iterating all these partitioned arguments simultaneously:
 
 
@@ -216,16 +216,16 @@ semantically equivalent to iterating all these partitioned arguments simultaneou
 
 
 Alternatively, it might be sometimes desired to run the same partitioning function on all parameters simultaneously with
-:py:func:`~parafun.partition.api.all_arguments`:
+:py:func:`~parfun.partition.api.all_arguments`:
 
 
 .. code-block:: python
 
-    from parafun import parafun
-    from parafun.partition.api import all_arguments
-    from parafun.partition.dataframe import df_by_row
+    from parfun import parfun
+    from parfun.partition.api import all_arguments
+    from parfun.partition.dataframe import df_by_row
 
-    @parafun(
+    @parfun(
         split=all_arguments(df_by_group(by=["year", "month"]))
     )
     def func(df_1: pd.DataFrame, df_2: pd.DataFrame):
@@ -235,7 +235,7 @@ Alternatively, it might be sometimes desired to run the same partitioning functi
 Custom partition generators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you wish to implement more complex partitioning schemes, ``parafun`` allows the use of custom Python generators:
+If you wish to implement more complex partitioning schemes, ``parfun`` allows the use of custom Python generators:
 
 
 .. code:: python
@@ -245,7 +245,7 @@ If you wish to implement more complex partitioning schemes, ``parafun`` allows t
             yield partition,  # Should always yield a tuple that matches the input parameters.
 
 
-    @parafun(
+    @parfun(
         split=all_arguments(partition_by_week),
         ...
     )
@@ -275,13 +275,13 @@ The library tries to automatically determine the optimal size for the parallelly
 
 .. code:: python
 
-    @parafun(
+    @parfun(
         ...,
         fixed_partition_size=10,  # The partition size will always be 10 rows/items.
         ...
     )
 
-    @parafun(
+    @parfun(
         ...,
         initial_partition_size=200,  # The library will use 200 as a first estimate then improve from it.
         ...
@@ -293,7 +293,7 @@ compute the partition size:
 
 .. code:: python
 
-    @parafun(
+    @parfun(
         ...
         initial_partition_size=lambda df: df.shape[0] * 0.01,
         ...
@@ -318,7 +318,7 @@ partitioned computations as an iterable and their result type should match the d
 
 .. code:: python
 
-    @parafun(
+    @parfun(
         split=all_arguments(list_by_chunk),
         combine_with=sum,  # signature should be `Iterable[float] -> float`.
     )
@@ -329,7 +329,7 @@ partitioned computations as an iterable and their result type should match the d
 Nested parallel function calls
 ------------------------------
 
-Parafun functions can be safely called from other Parafun functions.
+Parfun functions can be safely called from other Parfun functions.
 
 **Currently, Scaler is the only backend that will run the inner functions in parallel**. Other backends will execute the
 inner functions sequentially, as regular Python functions.
@@ -337,14 +337,14 @@ inner functions sequentially, as regular Python functions.
 
 .. code-block:: python
 
-    @parafun(split=per_argument(values=list_by_chunk))
+    @parfun(split=per_argument(values=list_by_chunk))
     def parent_func(values: List[float]):
         ...
         result = child_func(df)
         ...
 
 
-    @parafun(split=split(df_by_group(by=["year", "month"])))
+    @parfun(split=split(df_by_group(by=["year", "month"])))
     def child_func(df: pd.DataFrame):
         ...
 
@@ -361,7 +361,7 @@ metrics when running the parallel function:
 
 .. code-block:: python
 
-    @parafun(
+    @parfun(
         ...,
         profile=True,
     )
@@ -394,7 +394,7 @@ Applying this to our previous function give us this:
 * *total CPU execution time* tells us the actual execution time of our parallel function. Notice that this duration is
   larger than the value returned by ``%timeit`` (1.23 seconds). That is because   **it sums the execution times for all
   the cores that processed our function**. It is **also longer than the sequential execution of our function, as the
-  Parafun execution adds some additional computation** (partitioning, combining).
+  Parfun execution adds some additional computation** (partitioning, combining).
 
 * *compute time* tells us how much CPU was spent working inside the ``relative_metrics()`` function.   Notice that this
   value roughly matches the duration of the sequential function when measured with ``%timeit``. The *min*, *max* and
@@ -407,12 +407,12 @@ Applying this to our previous function give us this:
 
 * *maximum speedup (theoretical)* estimates how much faster the function would run on a parallel machine with an
   infinite number of cores. A theoretical 12x speedup is reasonable. The library uses different metrics to estimate this
-  value (parafun overhead, dataset size, partition sizes ...).
+  value (parallel overhead, dataset size, partition sizes ...).
 
 * *total partition count* and *current estimated partition size* tell us that our function executed on 50 partitions,
   and that the library estimates the optimal partition size to be around 1408 rows. The library uses heuristics to
   estimate the optimal partition size. The library tries to find a partition size that provides significant parallel
-  speedup without causing too much parafun overhead. *current estimator state* and *estimator function* provide
+  speedup without causing too much parallel overhead. *current estimator state* and *estimator function* provide
   additional debugging information relating to this estimate.
 
 
@@ -428,7 +428,7 @@ function to a CSV file. All durations in this file are in nanoseconds (10-9):
 
 .. code-block:: python
 
-    @parafun(
+    @parfun(
         ...,
         trace_export="relative_metrics.trace_export.csv",
     )

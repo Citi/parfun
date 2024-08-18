@@ -1,4 +1,4 @@
-We welcome contributions to the Parafun library.
+We welcome contributions to the Parfun library.
 
 
 ## Helpful Resources
@@ -7,9 +7,9 @@ We welcome contributions to the Parafun library.
 
 * Documentation: [./docs](./docs) (see [README.md](./README.md) for building instructions)
 
-* [Repository](https://github.com/citi/parafun)
+* [Repository](https://github.com/citi/parfun)
 
-* [Issue tracking](https://github.com/citi/parafun/issues)
+* [Issue tracking](https://github.com/citi/parfun/issues)
 
 
 ## Contributing Guide
@@ -36,7 +36,7 @@ The `isort`, `black` and `flake8` packages can be installed through Python's PIP
 ### Bump version number
 
 Before pushing your pull request, please update the version number of the library in the
-[about.py](./parafun/about.py) file.
+[about.py](./parfun/about.py) file.
 
 Update the minor version number if your changes are backward-compatible, otherwise update the major version number:
 

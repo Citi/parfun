@@ -1,8 +1,8 @@
 import time
 import unittest
 
-from parafun.entry_point import get_parallel_backend, set_parallel_backend
-from parafun.functions import parallel_map, parallel_starmap, parallel_timed_map
+from parfun.entry_point import get_parallel_backend, set_parallel_backend
+from parfun.functions import parallel_map, parallel_starmap, parallel_timed_map
 from tests.backend.utility import warmup_workers
 
 DELAY = 50_000_000  # 50 ms

@@ -8,16 +8,16 @@ from typing import Iterable, List, Tuple
 try:
     import pandas as pd
 except ImportError:
-    raise ImportError("Pandas dependency missing. Use `pip install 'parafun[pandas]'` to install Pandas.")
+    raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parafun.combine.collection import list_concat
-from parafun.combine.dataframe import df_concat
-from parafun.decorators import parafun
-from parafun.entry_point import get_parallel_backend, set_parallel_backend, set_parallel_backend_context
-from parafun.partition.api import per_argument
-from parafun.partition.collection import list_by_chunk
-from parafun.partition.dataframe import df_by_row
-from parafun.partition.object import PartitionGenerator
+from parfun.combine.collection import list_concat
+from parfun.combine.dataframe import df_concat
+from parfun.decorators import parfun
+from parfun.entry_point import get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+from parfun.partition.api import per_argument
+from parfun.partition.collection import list_by_chunk
+from parfun.partition.dataframe import df_by_row
+from parfun.partition.object import PartitionGenerator
 from tests.backend.utility import warmup_workers
 from tests.test_helpers import find_nth_prime, random_df
 
@@ -162,7 +162,7 @@ class TestDecorators(unittest.TestCase):
         self.assertTrue(sequential.equals(parallel))
 
 
-@parafun(
+@parfun(
     partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100
 )
 def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[int], constant: int) -> int:
@@ -173,12 +173,12 @@ def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[i
     return result
 
 
-@parafun(partition_on="values", partition_with=df_by_row, combine_with=df_concat)
+@parfun(partition_on="values", partition_with=df_by_row, combine_with=df_concat)
 def _find_all_nth_primes(values: pd.DataFrame) -> pd.DataFrame:
     return values.apply(lambda series: series.apply(find_nth_prime))
 
 
-@parafun(partition_on=("a", "b"), partition_with=list_by_chunk, combine_with=df_concat)
+@parfun(partition_on=("a", "b"), partition_with=list_by_chunk, combine_with=df_concat)
 def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) -> pd.DataFrame:
     list_of_df = []
     for i, j in zip(a, b):
@@ -206,7 +206,7 @@ def _delayed_combine(values: Iterable[float]) -> float:
     return result
 
 
-@parafun(partition_on="values", partition_with=_delayed_partition, combine_with=_delayed_combine)
+@parfun(partition_on="values", partition_with=_delayed_partition, combine_with=_delayed_combine)
 def _delayed_sum(values: Iterable[float]) -> float:
     logging.debug("start delayed sum")
     result = sum(values)
@@ -214,7 +214,7 @@ def _delayed_sum(values: Iterable[float]) -> float:
     return result
 
 
-@parafun(split=per_argument(values=list_by_chunk), combine_with=list_concat)
+@parfun(split=per_argument(values=list_by_chunk), combine_with=list_concat)
 def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tuple[int, int]]:
     parent_pid = os.getpid()
     child_input = [parent_pid for _ in range(0, child_input_size)]
@@ -222,20 +222,20 @@ def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tu
     return list_concat(_nested_child_function(child_input) for _ in values)
 
 
-@parafun(split=per_argument(parent_pids=list_by_chunk), combine_with=list_concat)
+@parfun(split=per_argument(parent_pids=list_by_chunk), combine_with=list_concat)
 def _nested_child_function(parent_pids: List[int]) -> List[Tuple[int, int]]:
     child_pid = os.getpid()
     return [(parent_pid, child_pid) for parent_pid in parent_pids]
 
 
-@parafun(partition_on="values", partition_with=list_by_chunk, combine_with=list_concat, fixed_partition_size=10)
+@parfun(partition_on="values", partition_with=list_by_chunk, combine_with=list_concat, fixed_partition_size=10)
 def _fixed_partition_size(values: List) -> List:
     if len(values) != 10:
         raise ValueError("invalid fixed partition size.")
     return values
 
 
-@parafun(split=per_argument(a=list_by_chunk, b=df_by_row), combine_with=df_concat)
+@parfun(split=per_argument(a=list_by_chunk, b=df_by_row), combine_with=df_concat)
 def _per_argument_sum(a: List, b: pd.DataFrame) -> pd.DataFrame:
     """Multiples the dataframe values by the corresponding list items."""
 

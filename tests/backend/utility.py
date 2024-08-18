@@ -4,10 +4,10 @@ import unittest
 from collections import deque
 from concurrent.futures import wait
 
-from parafun.backend.mixins import BackendEngine
-from parafun.functions import parallel_map
-from parafun.profiler.functions import profile
-from parafun.profiler.object import TraceTime
+from parfun.backend.mixins import BackendEngine
+from parfun.functions import parallel_map
+from parfun.profiler.functions import profile
+from parfun.profiler.object import TraceTime
 
 
 # default time.sleep has no signatures, which will break scaler
