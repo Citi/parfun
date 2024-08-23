@@ -1,10 +1,10 @@
 import inspect
-from concurrent.futures import Future
 from threading import BoundedSemaphore
 from typing import Any, Optional, Set
 
 try:
     from scaler import Client, SchedulerClusterCombo
+    from scaler.client.future import ScalerFuture
     from scaler.client.object_reference import ObjectReference
 except ImportError:
     raise ImportError("Scaler dependency missing. Use `pip install 'parfun[scaler]'` to install Scaler.")
@@ -34,7 +34,7 @@ class ScalerSession(BackendSession):
     def preload_value(self, value: Any) -> ObjectReference:
         return self.client.send_object(value)
 
-    def submit(self, fn, *args, **kwargs) -> Optional[Future]:
+    def submit(self, fn, *args, **kwargs) -> Optional[ProfiledFuture]:
         with profile() as submit_duration:
             future = ProfiledFuture()
 
@@ -44,7 +44,7 @@ class ScalerSession(BackendSession):
 
             underlying_future = self.client.submit(fn, *args, **kwargs)
 
-        def on_done_callback(underlying_future: Future):
+        def on_done_callback(underlying_future: ScalerFuture):
             assert submit_duration.value is not None
 
             if underlying_future.cancelled():
@@ -56,17 +56,7 @@ class ScalerSession(BackendSession):
 
                 if exception is None:
                     result = underlying_future.result()
-
-                    # New for scaler>=1.5.0: task_duration is removed and replaced with profiling_info()
-
-                    function_duration = int(
-                        (
-                            underlying_future.task_duration
-                            if hasattr(underlying_future, "task_duration")
-                            else underlying_future.profiling_info().duration_s
-                        )
-                        * 1_000_000_000
-                    )
+                    function_duration = int(underlying_future.profiling_info().cpu_time_s * 1_000_000_000)
                 else:
                     function_duration = 0
                     result = None
@@ -97,21 +87,28 @@ class ScalerRemoteBackend(BackendEngine):
         allows_nested_tasks: bool = True,
         **client_kwargs,
     ):
-        self._scheduler_address = scheduler_address
-        self._n_workers = n_workers
-        self._allows_nested_tasks = allows_nested_tasks
-        self._client_kwargs = client_kwargs
+        self.__setstate__(
+            {
+                "scheduler_address": scheduler_address,
+                "n_workers": n_workers,
+                "allows_nested_tasks": allows_nested_tasks,
+                "client_kwargs": client_kwargs,
+            }
+        )
 
     def __getstate__(self) -> dict:
         return {
             "scheduler_address": self._scheduler_address,
             "n_workers": self._n_workers,
             "allows_nested_tasks": self._allows_nested_tasks,
-            **self._client_kwargs,
+            "client_kwargs": self._client_kwargs,
         }
 
     def __setstate__(self, state: dict) -> None:
-        self.__init__(**state)
+        self._scheduler_address = state["scheduler_address"]
+        self._n_workers = state["n_workers"]
+        self._allows_nested_tasks = state["allows_nested_tasks"]
+        self._client_kwargs = state["client_kwargs"]
 
     def session(self) -> ScalerSession:
         return ScalerSession(self._scheduler_address, self._n_workers, **self._client_kwargs)
@@ -149,15 +146,6 @@ class ScalerLocalBackend(ScalerRemoteBackend):
             scheduler_port = get_available_tcp_port()
             scheduler_address = f"tcp://127.0.0.1:{scheduler_port}"
 
-        scheduler_cluster_combo_kwargs = self.__get_constructor_arg_names(SchedulerClusterCombo)
-
-        self._cluster = SchedulerClusterCombo(
-            address=scheduler_address,
-            n_workers=n_workers,
-            per_worker_queue_size=per_worker_queue_size,
-            **{kwarg: value for kwarg, value in kwargs.items() if kwarg in scheduler_cluster_combo_kwargs},
-        )
-
         client_kwargs = self.__get_constructor_arg_names(Client)
 
         super().__init__(
@@ -167,8 +155,17 @@ class ScalerLocalBackend(ScalerRemoteBackend):
             **{kwarg: value for kwarg, value in kwargs.items() if kwarg in client_kwargs},
         )
 
+        scheduler_cluster_combo_kwargs = self.__get_constructor_arg_names(SchedulerClusterCombo)
+
+        self._cluster = SchedulerClusterCombo(
+            address=scheduler_address,
+            n_workers=n_workers,
+            per_worker_queue_size=per_worker_queue_size,
+            **{kwarg: value for kwarg, value in kwargs.items() if kwarg in scheduler_cluster_combo_kwargs},
+        )
+
     def __setstate__(self, state: dict) -> None:
-        super().__init__(**state)
+        super().__setstate__(state)
         self._cluster = None  # Unserialized instances have no cluster reference.
 
     @property

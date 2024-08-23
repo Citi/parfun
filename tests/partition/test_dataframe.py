@@ -1,6 +1,6 @@
 import math
 import unittest
-from typing import List
+from typing import List, cast
 
 try:
     import pandas as pd
@@ -8,6 +8,7 @@ except ImportError:
     raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
 from parfun.partition.dataframe import df_by_group, df_by_row
+from parfun.partition.object import SmartPartitionGenerator
 from parfun.partition.utility import with_partition_size
 from tests.test_helpers import random_df
 
@@ -57,7 +58,7 @@ class TestPartitionDataframe(unittest.TestCase):
 
         # Tests if the generator dynamically adapts to varying chunk size.
 
-        gen = df_by_group(by="category")(input_df)
+        gen = cast(SmartPartitionGenerator, df_by_group(by="category")(input_df))
         next(gen)
 
         partition_size, chunk = gen.send(1)

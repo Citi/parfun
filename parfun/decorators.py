@@ -1,24 +1,26 @@
 """
 A decorator that helps users run their functions in parallel.
 """
+
 import importlib
 from functools import wraps
 from typing import Callable, Iterable, Optional, Tuple, Union
 
+from parfun.kernel.function_signature import NamedArguments
 from parfun.kernel.parallel_function import ParallelFunction
 from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
-from parfun.partition.object import PartitionFunction
+from parfun.partition.object import PartitionFunction, PartitionGenerator
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
 
 
 def parfun(
     combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
-    split: Optional[PartitionFunction[PartitionType]] = None,
+    split: Optional[Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]] = None,
     partition_on: Optional[Union[str, Tuple[str, ...]]] = None,
     partition_with: Optional[PartitionFunction[PartitionType]] = None,
-    initial_partition_size: Optional[Union[int, Callable[[PartitionType], int]]] = None,
-    fixed_partition_size: Optional[Union[int, Callable[[PartitionType], int]]] = None,
+    initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
+    fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
     profile: bool = False,
     trace_export: Optional[str] = None,
     partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = LinearRegessionEstimator,

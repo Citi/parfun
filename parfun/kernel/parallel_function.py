@@ -11,14 +11,14 @@ from parfun.functions import parallel_timed_map
 from parfun.kernel.function_signature import FunctionSignature, NamedArguments
 from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
 from parfun.partition.api import multiple_arguments
-from parfun.partition.object import PartitionFunction
+from parfun.partition.object import PartitionFunction, PartitionGenerator
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
 from parfun.profiler.functions import export_task_trace, print_profile_trace, timed_combine_with, timed_partition
 from parfun.profiler.object import PartitionedTaskTrace
 
 
-@attrs.define
+@attrs.define(init=False)
 class ParallelFunction:
     """Wraps a function so that it executes in parallel using a map-reduce/scatter-gather approach.
 
@@ -29,19 +29,15 @@ class ParallelFunction:
 
     combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType] = attrs.field()
 
-    split: PartitionFunction[NamedArguments] = attrs.field()
+    split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]] = attrs.field()
 
-    function_name: Optional[str] = attrs.field(default=None)
+    function_name: str = attrs.field()
 
-    initial_partition_size: Optional[Callable[[FunctionInputType], int]] = attrs.field(default=None)
-    fixed_partition_size: Optional[Callable[[FunctionInputType], int]] = attrs.field(default=None)
+    initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
+    fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
 
-    profile: bool = attrs.field(default=False)
-    trace_export: Optional[str] = attrs.field(default=None)
-
-    partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = attrs.field(
-        default=LinearRegessionEstimator
-    )
+    profile: bool = attrs.field()
+    trace_export: Optional[str] = attrs.field()
 
     _partition_size_estimator: Optional[PartitionSizeEstimator] = attrs.field(init=False, default=None)
 
@@ -50,13 +46,17 @@ class ParallelFunction:
 
     def __init__(
         self,
-        *args,
-        split: Optional[PartitionFunction[NamedArguments]] = None,
+        function: Callable[[FunctionInputType], FunctionOutputType],
+        function_name: str,
+        combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
+        split: Optional[Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]] = None,
         partition_on: Optional[Union[str, Tuple[str, ...]]] = None,
         partition_with: Optional[PartitionFunction[PartitionType]] = None,
-        initial_partition_size: Optional[Callable[[FunctionInputType], int]] = None,
-        fixed_partition_size: Optional[Callable[[FunctionInputType], int]] = None,
-        **kwargs,
+        initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
+        fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
+        profile: bool = False,
+        trace_export: Optional[str] = None,
+        partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = LinearRegessionEstimator,
     ):
         if (partition_on is None) != (partition_with is None):
             raise ValueError("`partition_on` and `partition_with` should be both simultaneously set or None.")
@@ -76,12 +76,15 @@ class ParallelFunction:
             initial_partition_size = ParallelFunction._legacy_partition_size(partition_on, initial_partition_size)
             fixed_partition_size = ParallelFunction._legacy_partition_size(partition_on, fixed_partition_size)
 
-        self.__attrs_init__(
-            *args,
+        self.__attrs_init__(  # type: ignore[attr-defined]
+            function=function,
+            function_name=function_name,
+            combine_with=combine_with,
             split=split,
             initial_partition_size=initial_partition_size,
             fixed_partition_size=fixed_partition_size,
-            **kwargs,
+            profile=profile,
+            trace_export=trace_export,
         )
 
         self._function_signature = FunctionSignature.from_function(self.function)
@@ -90,7 +93,7 @@ class ParallelFunction:
             raise ValueError("`initial_partition_size` and `fixed_partition_size` cannot be set simultaneously.")
 
         if self.fixed_partition_size is None:
-            self._partition_size_estimator = self.partition_size_estimator_factory()
+            self._partition_size_estimator = partition_size_estimator_factory()
 
         self._validate_function_signature()
 
@@ -194,15 +197,15 @@ class ParallelFunction:
     @staticmethod
     def _legacy_partition_with(
         partition_on: Union[str, Tuple[str, ...]], partition_with: PartitionFunction[PartitionType]
-    ) -> PartitionFunction[NamedArguments]:
+    ) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
         """Implements the legacy `partition_on` and `partition_with` API using the newer `split` interface."""
 
         return multiple_arguments(partition_on, partition_with)
 
     @staticmethod
     def _legacy_partition_size(
-        partition_on: Tuple[str, ...], partition_size: Optional[Callable[[FunctionInputType], int]]
-    ) -> Optional[Callable[[FunctionInputType], int]]:
+        partition_on: Tuple[str, ...], partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]]
+    ) -> Optional[Union[int, Callable[[FunctionInputType], int]]]:
         """
         Implements the legacy behaviour of `initial_partition_size` and `fixed_partition_size` when used with
         `partition_on` and `partition_with` API.
@@ -214,7 +217,8 @@ class ParallelFunction:
         # When the partition size argument is a callable, the old API only passes the `partition_on` values as
         # positional arguments.
 
-        def legacy_partition_size(**kwargs):
+        def legacy_partition_size(*args, **kwargs):
+            assert len(args) == 0
             partition_args = [kwargs[arg_name] for arg_name in partition_on]
             return partition_size(*partition_args)
 

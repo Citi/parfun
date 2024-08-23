@@ -1,13 +1,15 @@
 from collections import OrderedDict
 from itertools import chain
-from typing import Tuple, Union
+from typing import Callable, Tuple, Union
 
 from parfun.kernel.function_signature import NamedArguments
 from parfun.partition.object import PartitionFunction, PartitionGenerator
 from parfun.partition.primitives import partition_map, partition_zip
 
 
-def per_argument(**partition_arg_with: PartitionFunction) -> PartitionFunction[NamedArguments]:
+def per_argument(
+    **partition_arg_with: PartitionFunction,
+) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
     """
     Applies multiple partitioning functions simultaneously on different function arguments, similarly to Python's
     :py:func:`zip`.
@@ -27,7 +29,7 @@ def per_argument(**partition_arg_with: PartitionFunction) -> PartitionFunction[N
 
     partition_arg_names = set(partition_arg_with.keys())
 
-    def partitioning_function(named_args: NamedArguments) -> Tuple[NamedArguments, PartitionGenerator]:
+    def partitioning_function(named_args: NamedArguments) -> Tuple[NamedArguments, PartitionGenerator[NamedArguments]]:
         # Applies all partition functions simultaneously using `partition_zip()`, and then rebuilds the `NamedArguments`
         # object with the partitioned values.
 
@@ -41,7 +43,9 @@ def per_argument(**partition_arg_with: PartitionFunction) -> PartitionFunction[N
             partition_arg_with[arg_name](partitioned_args[arg_name]) for arg_name in partition_arg_names
         ]
 
-        generator = partition_map(reassign_partitioned_arguments, partition_zip(*partitioned_arg_generators))
+        zipped = partition_zip(*partitioned_arg_generators)
+
+        generator = partition_map(reassign_partitioned_arguments, zipped)  # type: ignore[type-var]
 
         return non_partitioned_args, generator
 
@@ -50,7 +54,7 @@ def per_argument(**partition_arg_with: PartitionFunction) -> PartitionFunction[N
 
 def multiple_arguments(
     partition_on: Union[Tuple[str, ...], str], partition_with: PartitionFunction
-) -> PartitionFunction[NamedArguments]:
+) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
     """
     Applies a single partitioning function to multiple arguments.
 
@@ -87,14 +91,16 @@ def multiple_arguments(
         generator = partition_map(
             lambda *partitioned_values: partitioned_args.reassigned(**dict(zip(partition_on, partitioned_values))),
             partition_with(*arg_values),
-        )
+        )  # type: ignore[type-var]
 
         return non_partitioned_args, generator
 
     return partitioning_function
 
 
-def all_arguments(partition_with: PartitionFunction) -> PartitionFunction[NamedArguments]:
+def all_arguments(
+    partition_with: PartitionFunction,
+) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
     """
     Applies a single partitioning function to all arguments.
 

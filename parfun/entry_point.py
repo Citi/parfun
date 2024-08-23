@@ -7,7 +7,7 @@ import contextlib
 import logging
 import os
 from contextvars import ContextVar, Token
-from typing import Optional, Union
+from typing import Callable, Dict, Optional, Union
 
 from parfun.backend.local_multiprocessing import LocalMultiprocessingBackend
 from parfun.backend.local_single_process import LocalSingleProcessBackend
@@ -15,7 +15,7 @@ from parfun.backend.mixins import BackendEngine
 
 _backend_engine: ContextVar[Optional[BackendEngine]] = ContextVar("_backend_engine", default=None)
 
-BACKEND_REGISTRY = {
+BACKEND_REGISTRY: Dict[str, Callable] = {
     "none": lambda *_args, **_kwargs: None,
     "local_single_process": LocalSingleProcessBackend,
     "local_multiprocessing": LocalMultiprocessingBackend,

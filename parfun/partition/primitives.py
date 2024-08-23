@@ -1,16 +1,16 @@
-from typing import Callable, Generator, Optional, Sized, Tuple, TypeVar
+from typing import Callable, Optional, Sequence, Tuple, TypeVar, cast
 
-from parfun.partition.object import PartitionGenerator, PartitionType, SmartPartitionGenerator
+from parfun.partition.object import PartitionGenerator, PartitionType, SmartPartitionGenerator, SimplePartitionIterator
 
-InputPartitionType = TypeVar("InputPartitionType")
+InputPartitionType = TypeVar("InputPartitionType", bound=Tuple)
 OutputPartitionType = TypeVar("OutputPartitionType", bound=Tuple)
 
 
 def partition_map(
-    func: Callable[[InputPartitionType], OutputPartitionType], generator: PartitionGenerator[InputPartitionType]
+    func: Callable[..., OutputPartitionType], generator: PartitionGenerator[InputPartitionType]
 ) -> PartitionGenerator[OutputPartitionType]:
     """
-    Same as Python's built-in ``map()``, but works on ``PartitionGenerator``s.
+    Same as Python's built-in ``map()``, but works on partition generators.
 
     .. code:: python
 
@@ -24,19 +24,23 @@ def partition_map(
     """
 
     try:
-        first_value = next(generator)
+        first_value = cast(Optional[InputPartitionType], next(generator))
 
         if first_value is not None:
             # This is a regular generator
+            simple_generator = cast(SimplePartitionIterator[InputPartitionType], generator)
+
             yield func(*first_value)
 
             while True:
-                yield func(*next(generator))
+                yield func(*next(simple_generator))
         else:
+            smart_generator = cast(SmartPartitionGenerator[InputPartitionType], generator)
+
             requested_partition_size = yield None
 
             while True:
-                value = generator.send(requested_partition_size)
+                value = smart_generator.send(requested_partition_size)
                 _validate_smart_partition_value(value)
 
                 partition_size, partition = value
@@ -72,21 +76,23 @@ def partition_flatmap(
     """
 
     try:
-        first_value = next(generator)
+        first_value = cast(Optional[InputPartitionType], next(generator))
     except StopIteration:
         return
 
     if first_value is not None:
         # The parent generator is a regular generator
-        yield from _partition_flatmap_regular_generator(func, first_value, generator)
+        simple_generator = cast(SimplePartitionIterator[InputPartitionType], generator)
+        yield from _partition_flatmap_regular_generator(func, first_value, simple_generator)
     else:
-        yield from _partition_flatmap_smart_generator(func, generator)
+        smart_generator = cast(SmartPartitionGenerator[InputPartitionType], generator)
+        yield from _partition_flatmap_smart_generator(func, smart_generator)
 
 
 def _partition_flatmap_regular_generator(
     func: Callable[[InputPartitionType], PartitionGenerator[OutputPartitionType]],
     first_value: InputPartitionType,
-    generator: PartitionGenerator[InputPartitionType],
+    generator: SimplePartitionIterator[InputPartitionType],
 ) -> PartitionGenerator[OutputPartitionType]:
     """
     `partition_flatmap()` specialisation for parent generators that are regular Python generators.
@@ -97,12 +103,13 @@ def _partition_flatmap_regular_generator(
 
     def iterate_nested_generator(
         nested_generator: PartitionGenerator[OutputPartitionType], requested_partition_size: Optional[int] = None
-    ) -> Generator:
+    ):
         try:
-            first_value = next(nested_generator)
+            first_value = cast(Optional[OutputPartitionType], next(nested_generator))
 
             if first_value is not None:
                 # This is a regular generator
+                nested_simple_generator = cast(SimplePartitionIterator[OutputPartitionType], nested_generator)
 
                 if requested_partition_size is not None:
                     raise ValueError(
@@ -110,13 +117,15 @@ def _partition_flatmap_regular_generator(
                     )
 
                 yield first_value
-                yield from nested_generator
+                yield from nested_simple_generator
             else:
+                nested_smart_generator = cast(SmartPartitionGenerator[OutputPartitionType], nested_generator)
+
                 if requested_partition_size is None:  # First nested call value.
                     requested_partition_size = yield None
 
                 while True:
-                    value = nested_generator.send(requested_partition_size)
+                    value = nested_smart_generator.send(requested_partition_size)
                     _validate_smart_partition_value(value)
 
                     partition_size, partition = value
@@ -138,7 +147,7 @@ def _partition_flatmap_regular_generator(
 
 def _partition_flatmap_smart_generator(
     func: Callable[[InputPartitionType], PartitionGenerator[OutputPartitionType]],
-    generator: PartitionGenerator[InputPartitionType],
+    generator: SmartPartitionGenerator[InputPartitionType],
 ) -> SmartPartitionGenerator[OutputPartitionType]:
     """
     `partition_flatmap()` specialisation for parent generators that are smart generators.
@@ -150,7 +159,7 @@ def _partition_flatmap_smart_generator(
         nested_generator: PartitionGenerator[OutputPartitionType],
         requested_partition_size: int,
         parent_partition_size: int,
-    ) -> Generator:
+    ):
         total_size = 0
 
         try:
@@ -158,17 +167,21 @@ def _partition_flatmap_smart_generator(
 
             if nested_value is not None:
                 # This is a regular nested generator
+                nested_simple_generator = cast(SimplePartitionIterator[OutputPartitionType], nested_generator)
+
                 while True:
                     total_size += 1
 
                     requested_partition_size = yield parent_partition_size, nested_value
-                    nested_value = next(nested_generator)
+                    nested_value = next(nested_simple_generator)
             else:
                 # This is a smart nested generator
+                nested_smart_generator = cast(SmartPartitionGenerator[OutputPartitionType], nested_generator)
+
                 while True:
                     nested_requested_partition_size = max(1, round(requested_partition_size / parent_partition_size))
 
-                    nested_value = nested_generator.send(nested_requested_partition_size)
+                    nested_value = nested_smart_generator.send(nested_requested_partition_size)
                     _validate_smart_partition_value(nested_value)
 
                     nested_partition_size, nested_partition = nested_value
@@ -243,7 +256,7 @@ def partition_zip(*generators: PartitionGenerator) -> PartitionGenerator[Tuple]:
             if not is_smart[i]:
                 continue
 
-            value = generator.send(requested_partition_size)
+            value = cast(SmartPartitionGenerator, generator).send(requested_partition_size)
             _validate_partition_zip_smart_partition_value(value, partition_size)
             partition_size, first_values[i] = value
 
@@ -260,7 +273,7 @@ def partition_zip(*generators: PartitionGenerator) -> PartitionGenerator[Tuple]:
 
             for i, generator in enumerate(generators):
                 if is_smart[i]:
-                    value = generator.send(requested_partition_size)
+                    value = cast(SmartPartitionGenerator, generator).send(requested_partition_size)
                     _validate_partition_zip_smart_partition_value(value, partition_size)
                     partition_size, partition = value
                 else:
@@ -295,7 +308,7 @@ def _validate_partition_zip_smart_partition_value(
 
 
 def _validate_smart_partition_value(value):
-    if not isinstance(value, Sized) or len(value) != 2:
+    if not isinstance(value, Sequence) or len(value) != 2:
         raise ValueError("partition generator should yield a partition with its size.")
 
     partition_size, _ = value

@@ -37,7 +37,7 @@ def concat_lists(values: Iterable[List[ListValue]]) -> List[ListValue]:
     return list_concat(values)
 
 
-def unzip(iterable: Iterable[Tuple]) -> Tuple[Iterable]:
+def unzip(iterable: Iterable[Tuple]) -> Tuple[Iterable, ...]:
     """
     Opposite of zip().
 

@@ -1,10 +1,17 @@
 import unittest
 
-from parfun.backend.scaler import ScalerLocalBackend, ScalerRemoteBackend
+from parfun.backend.mixins import BackendEngine
+try:
+    from parfun.backend.scaler import ScalerLocalBackend, ScalerRemoteBackend
+    scaler_installed = True
+except ImportError:
+    scaler_installed = False
+
 from tests.backend.mixins import BackendEngineTestCase
 from tests.backend.utility import warmup_workers
 
 
+@unittest.skipUnless(scaler_installed, "Scaler backend not installed")
 class TestScalerBackend(unittest.TestCase, BackendEngineTestCase):
     N_WORKERS = 4
 
@@ -19,7 +26,7 @@ class TestScalerBackend(unittest.TestCase, BackendEngineTestCase):
     def n_workers(self) -> int:
         return TestScalerBackend.N_WORKERS
 
-    def backend(self) -> ScalerLocalBackend:
+    def backend(self) -> BackendEngine:
         return self._backend
 
     def test_is_backend_scaler_remote(self):

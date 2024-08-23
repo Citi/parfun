@@ -162,9 +162,7 @@ class TestDecorators(unittest.TestCase):
         self.assertTrue(sequential.equals(parallel))
 
 
-@parfun(
-    partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100
-)
+@parfun(partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100)
 def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[int], constant: int) -> int:
     result = 0
     for i in zip(col1, col2, col3):
@@ -187,7 +185,7 @@ def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) 
     return pd.concat(list_of_df)
 
 
-def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[float]]:
+def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[List[float]]]:
     yield None
     for i, v in enumerate(values):
         logging.debug(f"starts generating partition #{i}")
@@ -197,7 +195,7 @@ def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[floa
 
 
 def _delayed_combine(values: Iterable[float]) -> float:
-    result = 0
+    result = 0.0
     for i, v in enumerate(values):
         logging.debug(f"starts combining partition #{i}")
         time.sleep(_DELAY)

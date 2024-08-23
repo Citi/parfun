@@ -1,7 +1,7 @@
-from typing import Callable, Generator, Union
+from typing import Callable, Generator, Optional, Union, cast
 
 from parfun.object import PartitionType
-from parfun.partition.object import PartitionGenerator
+from parfun.partition.object import PartitionGenerator, SmartPartitionGenerator, SimplePartitionIterator
 
 
 def with_partition_size(
@@ -26,13 +26,17 @@ def with_partition_size(
     """
 
     try:
-        first_value = next(generator)
+        first_value = cast(Optional[PartitionType], next(generator))
 
         if first_value is not None:
             # This is a regular generator
+            simple_generator = cast(SimplePartitionIterator[PartitionType], generator)
+
             yield first_value
-            yield from generator
+            yield from simple_generator
         else:
+            smart_generator = cast(SmartPartitionGenerator[PartitionType], generator)
+
             while True:
                 if isinstance(partition_size, int):
                     current_partition_size = partition_size
@@ -40,7 +44,7 @@ def with_partition_size(
                     assert callable(partition_size)
                     current_partition_size = partition_size()
 
-                value = generator.send(current_partition_size)
+                value = smart_generator.send(current_partition_size)
 
                 if value is None or len(value) != 2:
                     raise ValueError("partition generator should yield a partition with its size.")

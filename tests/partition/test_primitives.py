@@ -1,7 +1,7 @@
 import math
 import unittest
 from itertools import chain, repeat
-from typing import Generator, List, Tuple
+from typing import Generator, List, Tuple, cast
 
 try:
     import pandas as pd
@@ -10,6 +10,7 @@ except ImportError:
 
 from parfun.partition.collection import list_by_chunk
 from parfun.partition.dataframe import df_by_group, df_by_row
+from parfun.partition.object import SimplePartitionIterator
 from parfun.partition.primitives import partition_flatmap, partition_map, partition_zip
 from parfun.partition.utility import with_partition_size
 
@@ -26,7 +27,7 @@ class TestPartitionPrimitives(unittest.TestCase):
 
         gen_1 = list_by_chunk
         gen_2 = df_by_row
-        gen_3 = repeat(math.pi)
+        gen_3 = cast(SimplePartitionIterator, repeat(math.pi))
 
         ys = list(with_partition_size(partition_zip(gen_1(xs), gen_2(df), gen_3), partition_size=PARTITION_SIZE))
 
@@ -62,7 +63,7 @@ class TestPartitionPrimitives(unittest.TestCase):
 
         xs = list(range(0, N))
 
-        def mapped_function(partition: List) -> Tuple[List]:
+        def mapped_function(partition: List[int]) -> Tuple[List[int]]:
             return ([x * x for x in partition],)
 
         # Smart generators
