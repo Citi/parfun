@@ -13,7 +13,9 @@ except ImportError:
 from parfun.combine.collection import list_concat
 from parfun.combine.dataframe import df_concat
 from parfun.decorators import parfun
-from parfun.entry_point import get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+from parfun.entry_point import (
+    BACKEND_REGISTRY, get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+)
 from parfun.partition.api import per_argument
 from parfun.partition.collection import list_by_chunk
 from parfun.partition.dataframe import df_by_row
@@ -101,6 +103,7 @@ class TestDecorators(unittest.TestCase):
         self.assertGreater(duration, expected_duration)
         self.assertAlmostEqual(duration, expected_duration, delta=expected_duration * 0.2)  # within 20% of expected
 
+    @unittest.skipUnless("scaler_local" in BACKEND_REGISTRY, "Scaler backend not installed")
     def test_parallel_nested_calls(self):
         """Makes sure that the decorators handles nested parallel function calls."""
 
