@@ -17,3 +17,5 @@ venv/
 
 dask-worker-space/*
 .pre-commit-config.yaml
+
+.DS_Store
