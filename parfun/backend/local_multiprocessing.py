@@ -17,7 +17,7 @@ class LocalMultiprocessingSession(BackendSession):
 
     def __init__(self, underlying_executor: Executor):
         self._underlying_executor = underlying_executor
-        self._concurrent_task_guard = BoundedSemaphore(underlying_executor._max_workers)
+        self._concurrent_task_guard = BoundedSemaphore(underlying_executor._max_workers)  # type: ignore[attr-defined]
 
     def __enter__(self) -> "LocalMultiprocessingSession":
         return self
@@ -73,7 +73,7 @@ class LocalMultiprocessingSession(BackendSession):
         return future
 
 
-@attrs.define
+@attrs.define(init=False)
 class LocalMultiprocessingBackend(BackendEngine):
     """
     A concurrent engine that shares a similar interface to :py:class:`concurrent.futures.Executor`, but that blocks when

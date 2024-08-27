@@ -3,12 +3,12 @@ A collection of pre-define APIs to help users partition collection data, like li
 """
 
 import logging
-from typing import Any, Iterable, Tuple
+from typing import Iterable, Tuple
 
-from parfun.partition.object import PartitionGenerator
+from parfun.partition.object import PartitionGenerator, PartitionType
 
 
-def list_by_chunk(*iterables: Iterable) -> PartitionGenerator[Tuple[Any, ...]]:
+def list_by_chunk(*iterables: Iterable[PartitionType]) -> PartitionGenerator[Tuple[Iterable[PartitionType], ...]]:
     """
     Partition one or multiple iterables by chunks of identical sizes.
 
@@ -41,7 +41,7 @@ def list_by_chunk(*iterables: Iterable) -> PartitionGenerator[Tuple[Any, ...]]:
         yield len(partition), tuple(zip(*partition))
 
 
-def lists_by_chunk(*iterables: Iterable) -> PartitionGenerator[Tuple[Any, ...]]:
+def lists_by_chunk(*iterables: Iterable[PartitionType]) -> PartitionGenerator[Tuple[Iterable[PartitionType], ...]]:
     logging.warning(
         f"`{lists_by_chunk.__name__}` will be removed in a future version, use "
         + f"`{list_by_chunk.__name__}` instead."
@@ -50,7 +50,9 @@ def lists_by_chunk(*iterables: Iterable) -> PartitionGenerator[Tuple[Any, ...]]:
     return list_by_chunk(*iterables)
 
 
-def zip_partition_on_args(*iterable) -> PartitionGenerator[Tuple[Any, ...]]:
+def zip_partition_on_args(
+    *iterable: Iterable[PartitionType],
+) -> PartitionGenerator[Tuple[Iterable[PartitionType], ...]]:
     logging.warning(
         f"`{zip_partition_on_args.__name__}` will be removed in a future version, use "
         + f"`{list_by_chunk.__name__}` instead."

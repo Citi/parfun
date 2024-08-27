@@ -1,7 +1,7 @@
 import abc
 from contextlib import contextmanager
 from threading import BoundedSemaphore
-from typing import ContextManager, Optional
+from typing import Generator, Optional
 
 try:
     from dask.distributed import Client, Future, LocalCluster, worker_client
@@ -30,7 +30,7 @@ class DaskSession(BackendSession):
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         return None
 
-    def submit(self, fn, *args, **kwargs) -> Optional[Future]:
+    def submit(self, fn, *args, **kwargs) -> Optional[ProfiledFuture]:
         with profile() as submit_duration:
             future = ProfiledFuture()
 
@@ -38,7 +38,7 @@ class DaskSession(BackendSession):
             if not acquired:
                 return None
 
-            with self._engine.executor() as executor:
+            with self._engine.executor() as executor:  # type: ignore[var-annotated]
                 underlying_future = executor.submit(timed_function, fn, *args, **kwargs)
 
         def on_done_callback(underlying_future: Future):
@@ -82,7 +82,7 @@ class DaskBaseBackend(BackendEngine, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     @contextmanager
-    def executor(self) -> ContextManager[ClientExecutor]:
+    def executor(self) -> Generator[ClientExecutor, None, None]:
         raise NotImplementedError
 
     def allows_nested_tasks(self) -> bool:
@@ -101,7 +101,7 @@ class DaskRemoteClusterBackend(DaskBaseBackend):
         self._executor = self._client.get_executor()
 
     @contextmanager
-    def executor(self) -> ContextManager[ClientExecutor]:
+    def executor(self) -> Generator[ClientExecutor, None, None]:
         yield self._executor
 
     def get_scheduler_address(self) -> str:
@@ -141,7 +141,7 @@ class DaskCurrentBackend(DaskBaseBackend):
         super().__init__(n_workers)
 
     @contextmanager
-    def executor(self) -> ContextManager[ClientExecutor]:
+    def executor(self) -> Generator[ClientExecutor, None, None]:
         with worker_client() as client:
             yield client.get_executor()
 

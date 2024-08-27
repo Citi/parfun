@@ -5,7 +5,7 @@ from typing import Callable, List, Optional, Tuple
 
 import attrs
 import numpy as np
-from attrs.validators import instance_of
+from attrs.validators import instance_of, is_callable
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
@@ -63,7 +63,7 @@ class LinearRegessionEstimator(PartitionSizeEstimator[LinearRegessionEstimate]):
     _run_traces: List[Tuple[int, int]] = attrs.field(init=False, factory=list)
 
     regressor_factory: Callable[[], BaseEstimator] = attrs.field(
-        validator=instance_of(Callable), default=lambda: LinearRegessionEstimator.default_regressor()
+        validator=is_callable(), default=lambda: LinearRegessionEstimator.default_regressor()
     )
 
     _current_coefficients: Optional[LinearRegressionCoefficients] = attrs.field(default=None)

@@ -1,9 +1,9 @@
 import collections
 import logging
 import time
-from typing import Any, Callable, Iterable, Optional, Tuple
+from typing import Any, Callable, Deque, Iterable, Optional, Tuple
 
-from parfun.backend.mixins import BackendSession
+from parfun.backend.mixins import BackendSession, ProfiledFuture
 from parfun.entry_point import get_parallel_backend
 from parfun.profiler.object import TraceTime
 
@@ -28,7 +28,7 @@ def parallel_timed_map(
     # Uses a generator function, so that we can use deque.pop() and thus discard the no longer required futures'
     # references as we yield them.
     def result_generator(backend_session: BackendSession):
-        futures = collections.deque()
+        futures: Deque[ProfiledFuture] = collections.deque()
 
         try:
             for args in zip(*iterables):

@@ -13,7 +13,9 @@ except ImportError:
 from parfun.combine.collection import list_concat
 from parfun.combine.dataframe import df_concat
 from parfun.decorators import parfun
-from parfun.entry_point import get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+from parfun.entry_point import (
+    BACKEND_REGISTRY, get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+)
 from parfun.partition.api import per_argument
 from parfun.partition.collection import list_by_chunk
 from parfun.partition.dataframe import df_by_row
@@ -101,6 +103,7 @@ class TestDecorators(unittest.TestCase):
         self.assertGreater(duration, expected_duration)
         self.assertAlmostEqual(duration, expected_duration, delta=expected_duration * 0.2)  # within 20% of expected
 
+    @unittest.skipUnless("scaler_local" in BACKEND_REGISTRY, "Scaler backend not installed")
     def test_parallel_nested_calls(self):
         """Makes sure that the decorators handles nested parallel function calls."""
 
@@ -162,9 +165,7 @@ class TestDecorators(unittest.TestCase):
         self.assertTrue(sequential.equals(parallel))
 
 
-@parfun(
-    partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100
-)
+@parfun(partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100)
 def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[int], constant: int) -> int:
     result = 0
     for i in zip(col1, col2, col3):
@@ -187,7 +188,7 @@ def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) 
     return pd.concat(list_of_df)
 
 
-def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[float]]:
+def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[List[float]]]:
     yield None
     for i, v in enumerate(values):
         logging.debug(f"starts generating partition #{i}")
@@ -197,7 +198,7 @@ def _delayed_partition(values: Iterable[float]) -> PartitionGenerator[Tuple[floa
 
 
 def _delayed_combine(values: Iterable[float]) -> float:
-    result = 0
+    result = 0.0
     for i, v in enumerate(values):
         logging.debug(f"starts combining partition #{i}")
         time.sleep(_DELAY)

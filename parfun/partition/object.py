@@ -2,15 +2,17 @@ from typing import Callable, Generator, Optional, Tuple, Union
 
 from parfun.object import PartitionType
 
+SimplePartitionIterator = Generator[PartitionType, None, None]
+
 SmartPartitionGenerator = Generator[Optional[Tuple[int, PartitionType]], int, None]
 
-PartitionGenerator = Union[Generator[PartitionType, None, None], SmartPartitionGenerator[PartitionType]]
+PartitionGenerator = Union[SimplePartitionIterator[PartitionType], SmartPartitionGenerator[PartitionType]]
 """
 All partitioning functions must return a Python generator of this type.
 
 There are two ways of writing a partitioning functions:
 
-* Use regular Python generators returning partitioned values:
+* Use regular Python generators (prefered) or iterators, returning partitioned values:
 
 
 .. code:: python
@@ -47,4 +49,4 @@ There are two ways of writing a partitioning functions:
 
 """
 
-PartitionFunction = Callable[[PartitionType], Tuple[PartitionType, PartitionGenerator[PartitionType]]]
+PartitionFunction = Callable[..., PartitionGenerator[PartitionType]]

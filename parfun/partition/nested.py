@@ -6,7 +6,7 @@ from parfun.partition.primitives import partition_flatmap, partition_map
 
 def partition_nested(
     *columns_partitions: Tuple[Union[Tuple[str, ...], str], PartitionFunction[Tuple]]
-) -> PartitionFunction[Dict[str, Any]]:
+) -> Callable[..., PartitionGenerator[Dict[str, Any]]]:
     """
     Creates a new partitioning function from a collection of nested partitioning functions that are individually applied
     to some of the input arguments.
@@ -66,17 +66,17 @@ def _partition_nested_build_generator(
                     **_updated_partitioned_kwargs(kwargs, current_arg_names, partitioned_values)
                 ),
                 current_generator,
-            )
+            )  # type: ignore[type-var, return-value]
         else:
             return partition_map(
                 lambda *partitioned_values: _updated_partitioned_kwargs(kwargs, current_arg_names, partitioned_values),
                 current_generator,
-            )
+            )  # type: ignore[type-var, return-value]
 
     return generator
 
 
 def _updated_partitioned_kwargs(
-    kwargs: Dict[str, Any], arg_names: Tuple[str], partitioned_values: Any
+    kwargs: Dict[str, Any], arg_names: Tuple[str, ...], partitioned_values: Any
 ) -> Dict[str, Any]:
     return {**kwargs, **dict(zip(arg_names, partitioned_values))}

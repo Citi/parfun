@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "mypy", "black", "flake8", "pyproject-flake8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "parfun"
+description = "Lightweight parallelisation library for Python"
+requires-python = ">=3.8"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { text = "Apache 2.0" }
+authors = [{ name = "Citi", email = "opensource@citi.com" }]
+dynamic = ["dependencies", "version"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: System :: Distributed Computing",
+]
+
+[project.urls]
+Home = "https://github.com/Citi/parfun"
+Issues = "https://github.com/Citi/parfun/issues"
+
+[project.optional-dependencies]
+pandas = ["pandas"]
+dask = ["dask", "distributed"]
+scaler = ["scaler[graphblas]"]
+
+[tool.setuptools]
+packages = ["parfun"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+dependencies = { file = "requirements.txt" }
+version = { attr = "parfun.about.__version__" }
+
+[tool.mypy]
+no_strict_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true
+exclude = [
+    "^docs.*$",
+]
+
+[tool.black]
+line-length = 120
+skip-magic-trailing-comma = true
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = "E203"
+exclude = "venv312"
+
+[metadata]
+long_description = { file = "README.md" }
+long_description_content_type = "text/markdown"

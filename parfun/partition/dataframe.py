@@ -47,7 +47,7 @@ def df_by_row(*dfs: pd.DataFrame) -> PartitionGenerator[Tuple[pd.DataFrame, ...]
 
     __validate_dfs_parameter(*dfs)
 
-    chunk_size = yield
+    chunk_size = yield None
 
     def dfs_chunk(rng_start: int, rng_end: int) -> Tuple[pd.DataFrame, ...]:
         return tuple(df.iloc[rng_start:rng_end] for df in dfs)
@@ -65,7 +65,7 @@ def df_by_row(*dfs: pd.DataFrame) -> PartitionGenerator[Tuple[pd.DataFrame, ...]
         yield total_size - range_start, dfs_chunk(range_start, total_size)
 
 
-def df_by_group(*args, **kwargs) -> PartitionFunction:
+def df_by_group(*args, **kwargs) -> PartitionFunction[pd.DataFrame]:
     """
     Partitions one or multiple Pandas dataframes by groups of identical numbers of rows, similar to
     :py:func:`pandas.DataFrame.groupby`.
@@ -97,23 +97,23 @@ def df_by_group(*args, **kwargs) -> PartitionFunction:
     def generator(*dfs: pd.DataFrame) -> PartitionGenerator[Tuple[pd.DataFrame, ...]]:
         __validate_dfs_parameter(*dfs)
 
-        groups: Iterable[Tuple[pd.DataFrame]] = zip(
+        groups: Iterable[Tuple[pd.DataFrame, ...]] = zip(
             *((group for _name, group in df.groupby(*args, **kwargs)) for df in dfs)
         )
 
         it = iter(groups)
 
-        chunked_group = tuple([] for _ in range(0, len(dfs)))
+        chunked_group: Tuple[List[pd.DataFrame], ...] = tuple([] for _ in range(0, len(dfs)))
         chunked_group_size: int = 0
 
-        target_chunk_size = yield
+        target_chunk_size = yield None
 
         def concat_chunked_group_dfs(chunked_group: Tuple[List[pd.DataFrame], ...]):
             return tuple(pd.concat(chunked_dfs) for chunked_dfs in chunked_group)
 
         while True:
             try:
-                group: Tuple[pd.DataFrame] = next(it)
+                group = next(it)
                 assert isinstance(group, tuple)
                 assert isinstance(group[0], pd.DataFrame)
 
