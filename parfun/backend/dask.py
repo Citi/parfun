@@ -145,11 +145,5 @@ class DaskCurrentBackend(DaskBaseBackend):
         with worker_client() as client:
             yield client.get_executor()
 
-    def get_scheduler_address(self) -> None:
-        return None
-
-    def disconnect(self):
-        pass
-
     def shutdown(self):
         pass

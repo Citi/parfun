@@ -40,12 +40,6 @@ class LocalSingleProcessBackend(BackendEngine):
     def session(self) -> BackendSession:
         return LocalSingleProcessSession()
 
-    def get_scheduler_address(self) -> None:
-        return None
-
-    def disconnect(self):
-        pass
-
     def shutdown(self):
         pass
 

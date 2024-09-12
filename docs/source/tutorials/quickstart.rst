@@ -59,8 +59,8 @@ with the :py:func:`~parfun.entry_point.set_parallel_backend` or within a Python 
     set_parallel_backend("local_multiprocessing")
 
     # Set the parallel backend with a Python context.
-    with set_parallel_backend_context("dask_remote"):
-        ... # Will run with the "dask_remote" backend.
+    with set_parallel_backend_context("scaler_remote", scheduler_address="tcp://scaler.cluster:1243"):
+        ... # Will run with parallel task over Scaler.
 
 
 See :py:func:`~parfun.entry_point.set_parallel_backend` for a description of the available backend options.

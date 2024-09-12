@@ -178,6 +178,7 @@ class ScalerLocalBackend(ScalerRemoteBackend):
     def shutdown(self):
         if self._cluster is not None:
             self._cluster.shutdown()
+            self._cluster = None
 
     @staticmethod
     def __get_constructor_arg_names(class_: type) -> Set:

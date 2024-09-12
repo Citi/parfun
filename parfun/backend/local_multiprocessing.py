@@ -26,14 +26,6 @@ class LocalMultiprocessingSession(BackendSession):
         return None
 
     def submit(self, fn, *args, **kwargs) -> ProfiledFuture:
-        """
-        Submits a task to one of the available worker. Returns a future that will complete when the computation
-        finishes.
-
-        :param fn: function to run
-        :return: The future.
-        """
-
         with profile() as submit_duration:
             future = ProfiledFuture()
 
@@ -76,8 +68,7 @@ class LocalMultiprocessingSession(BackendSession):
 @attrs.define(init=False)
 class LocalMultiprocessingBackend(BackendEngine):
     """
-    A concurrent engine that shares a similar interface to :py:class:`concurrent.futures.Executor`, but that blocks when
-    submitting tasks when no worker is available.
+    Concurrent engine that uses Python builtin :mod:`multiprocessing` module.
     """
 
     _underlying_executor: Executor = attrs.field(validator=instance_of(Executor), init=False)
@@ -93,12 +84,6 @@ class LocalMultiprocessingBackend(BackendEngine):
 
     def session(self) -> LocalMultiprocessingSession:
         return LocalMultiprocessingSession(self._underlying_executor)
-
-    def get_scheduler_address(self) -> None:
-        return None
-
-    def disconnect(self):
-        pass
 
     def shutdown(self, wait=True):
         self._underlying_executor.shutdown(wait=wait)

@@ -10,8 +10,7 @@ from parfun.entry_point import get_parallel_backend, set_parallel_backend_contex
 from parfun.functions import parallel_timed_map
 from parfun.kernel.function_signature import FunctionSignature, NamedArguments
 from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
-from parfun.partition.api import multiple_arguments
-from parfun.partition.object import PartitionFunction, PartitionGenerator
+from parfun.partition.object import PartitionGenerator
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
 from parfun.profiler.functions import export_task_trace, print_profile_trace, timed_combine_with, timed_partition
@@ -27,11 +26,11 @@ class ParallelFunction:
 
     function: Callable[[FunctionInputType], FunctionOutputType] = attrs.field()
 
-    combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType] = attrs.field()
+    function_name: str = attrs.field()
 
     split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]] = attrs.field()
 
-    function_name: str = attrs.field()
+    combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType] = attrs.field()
 
     initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
     fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
@@ -48,39 +47,19 @@ class ParallelFunction:
         self,
         function: Callable[[FunctionInputType], FunctionOutputType],
         function_name: str,
+        split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]],
         combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
-        split: Optional[Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]] = None,
-        partition_on: Optional[Union[str, Tuple[str, ...]]] = None,
-        partition_with: Optional[PartitionFunction[PartitionType]] = None,
         initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
         fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
         profile: bool = False,
         trace_export: Optional[str] = None,
         partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = LinearRegessionEstimator,
     ):
-        if (partition_on is None) != (partition_with is None):
-            raise ValueError("`partition_on` and `partition_with` should be both simultaneously set or None.")
-
-        if partition_on is not None:
-            assert partition_with is not None
-
-            if split is not None:
-                raise ValueError("`split` cannot be set with `partition_on` or `partition_with`.")
-
-            if isinstance(partition_on, str):
-                partition_on = (partition_on,)
-
-            # Implements the legacy `partition_on` and `partition_with` API using the newer `split` API.
-
-            split = ParallelFunction._legacy_partition_with(partition_on, partition_with)
-            initial_partition_size = ParallelFunction._legacy_partition_size(partition_on, initial_partition_size)
-            fixed_partition_size = ParallelFunction._legacy_partition_size(partition_on, fixed_partition_size)
-
         self.__attrs_init__(  # type: ignore[attr-defined]
             function=function,
             function_name=function_name,
-            combine_with=combine_with,
             split=split,
+            combine_with=combine_with,
             initial_partition_size=initial_partition_size,
             fixed_partition_size=fixed_partition_size,
             profile=profile,
@@ -193,36 +172,6 @@ class ParallelFunction:
             fixed_partition_size = self.fixed_partition_size
 
         return initial_partition_size, fixed_partition_size
-
-    @staticmethod
-    def _legacy_partition_with(
-        partition_on: Union[str, Tuple[str, ...]], partition_with: PartitionFunction[PartitionType]
-    ) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
-        """Implements the legacy `partition_on` and `partition_with` API using the newer `split` interface."""
-
-        return multiple_arguments(partition_on, partition_with)
-
-    @staticmethod
-    def _legacy_partition_size(
-        partition_on: Tuple[str, ...], partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]]
-    ) -> Optional[Union[int, Callable[[FunctionInputType], int]]]:
-        """
-        Implements the legacy behaviour of `initial_partition_size` and `fixed_partition_size` when used with
-        `partition_on` and `partition_with` API.
-        """
-
-        if not callable(partition_size):
-            return partition_size
-
-        # When the partition size argument is a callable, the old API only passes the `partition_on` values as
-        # positional arguments.
-
-        def legacy_partition_size(*args, **kwargs):
-            assert len(args) == 0
-            partition_args = [kwargs[arg_name] for arg_name in partition_on]
-            return partition_size(*partition_args)
-
-        return legacy_partition_size
 
 
 def is_nested_parallelism():

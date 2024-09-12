@@ -14,7 +14,6 @@ There are two ways of writing a partitioning functions:
 
 * Use regular Python generators (prefered) or iterators, returning partitioned values:
 
-
 .. code:: python
 
     def partition_list_by_chunks(values: List): PartitionGenerator[List]:
@@ -27,7 +26,6 @@ There are two ways of writing a partitioning functions:
 * Use partition size aware Python generators, or smart generators. These are more complex but more efficient. Partition
   size aware generators must get a suggested partition size through the return value of the ``yield`` statement, and
   yield partition sizes with its partitioned values:
-
 
 .. code:: python
 

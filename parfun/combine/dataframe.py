@@ -2,7 +2,6 @@
 A collection of pre-define APIs to help users combine Pandas' Dataframe data
 """
 
-import logging
 from typing import Iterable
 
 try:
@@ -32,17 +31,3 @@ def df_concat(dfs: Iterable[pd.DataFrame]) -> pd.DataFrame:
     """
 
     return pd.concat(dfs, ignore_index=True)
-
-
-def dfs_concat(dfs: Iterable[pd.DataFrame]) -> pd.DataFrame:
-    logging.warning(f"`{dfs_concat.__name__}` will be removed in a future version, use `{df_concat.__name__}` instead.")
-
-    return df_concat(dfs)
-
-
-def concat_list_of_dfs(df_list: Iterable[pd.DataFrame]) -> pd.DataFrame:
-    logging.warning(
-        f"`{concat_list_of_dfs.__name__}` will be removed in a future version, use `{df_concat.__name__}` instead."
-    )
-
-    return df_concat(df_list)

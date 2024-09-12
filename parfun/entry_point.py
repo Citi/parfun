@@ -51,102 +51,46 @@ def set_parallel_backend(backend: Union[str, BackendEngine], *args, **kwargs) ->
     :param backend:
         Supported backend options:
 
-        * ``"none"``: unsets the current parallel backend.
-          The parallel functions will be entirely disabled.
+        * ``"none"``: disable the current parallel backend.
 
-          When used with :py:func:`~parfun.decorators.parfun` will run the function sequentially and ignore partition
-          and combine functions.
+          Functions decorated with :py:func:`~parfun.decorators.parfun` will run sequentially as if not decorated.
 
-        * ``"local_single_process"``: runs the parallel tasks inside the calling Python process. For debug purposes.
+          Partitionning and combining functions will be ignored.
 
-          When used with :py:func:`~parfun.decorators.parfun`:
+        * ``"local_single_process"``: runs the tasks inside the calling Python process.
 
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
+          Functions decorated with :py:func:`~parfun.decorators.parfun` will partition the input data, and run the
+          combining function on the output data, but will also execute the function inside the calling Python process.
 
-          2. Then, the single process would interpret these partitions using the function one by one to generate a
-             list of results accordingly
-
-          3. Finally, the list of results will be merged into one using the combine function
+          Mostly intended for debugging purposes.
 
           See :py:mod:`~parfun.backend.local_single_process.LocalSingleProcessBackend`.
 
-        * ``"local_multiprocessing"``: runs the parallel tasks in parallel using Python's ``multiprocessing``.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the multiprocessing worker will interpret these partitions using the function in parallel to
-             generate a list of results accordingly
-
-          3. Finally, the list of results will be merged into one using the combine function
+        * ``"local_multiprocessing"``: runs the tasks in parallel using Python ``multiprocessing`` processes.
 
           See :py:mod:`~parfun.backend.local_multiprocessing.LocalMultiprocessingBackend`.
 
-        * ``"dask_local"``: runs the parallel tasks in parallel using a local Dask cluster.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the Dask local workers would interpret these partitions using the function one by one to generate
-             a list of results accordingly
-
-          3. Finally, the list of results are merged into one using the combine function
-
-          See :py:mod:`~parfun.backend.dask_local.DaskLocalClusterBackend`.
-
-        * ``"dask_remote"``: runs the parallel tasks in parallel using a remote Dask cluster.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the Dask remote workers would interpret these partitions using the function one by one to generate
-             a list of results accordingly
-
-          3. Finally, the list of results are merged into one using the combine function
-
-          See :py:mod:`~parfun.backend.dask_remote.DaskRemoteClusterBackend`.
-
-        * ``"dask_current"``: runs the parallel tasks in parallel using currently process defined Dask cluster.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the Dask workers would interpret these partitions using the function one by one to generate
-             a list of results accordingly
-
-          3. Finally, the list of results are merged into one using the combine function
-
-          See :py:mod:`~parfun.backend.dask_current.DaskCurrentBackend`.
-
-        * ``"scaler_local"``: runs the parallel tasks in parallel using a local Scaler cluster.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the Scaler local workers would interpret these partitions using the function one by one to generate
-             a list of results accordingly
-
-          3. Finally, the list of results are merged into one using the combine function
+        * ``"scaler_local"``: runs the tasks in parallel using an internally managed Scaler cluster.
 
           See :py:mod:`~parfun.backend.scaler.ScalerLocalBackend`.
 
-        * ``"scaler_remote"``: runs the parallel tasks in parallel using a remote Scaler cluster.
-
-          When used with :py:func:`~parfun.decorators.parfun`:
-
-          1. First, the input data will be cut partitioned into multiple chunks using the provided function
-
-          2. Then, the Scaler remote workers would interpret these partitions using the function one by one to generate
-             a list of results accordingly
-
-          3. Finally, the list of results are merged into one using the combine function
+        * ``"scaler_remote"``: runs the tasks in parallel using an externally managed Dask cluster.
 
           See :py:mod:`~parfun.backend.scaler.ScalerRemoteBackend`.
+
+        * ``"dask_local"``: runs the tasks in parallel using an internally managed Dask cluster.
+
+          See :py:mod:`~parfun.backend.dask_local.DaskLocalClusterBackend`.
+
+        * ``"dask_remote"``: runs the tasks in parallel using an externally managed Dask cluster.
+
+          See :py:mod:`~parfun.backend.dask_remote.DaskRemoteClusterBackend`.
+
+        * ``"dask_current"``: runs the tasks in parallel using the currently running Dask client
+          (:py:func:`~distributed.get_client`).
+
+          See :py:mod:`~parfun.backend.dask_current.DaskCurrentBackend`.
+
     :type backend:  Union[str, BackendEngine]
 
     :param args: Additional positional parameters for the backend constructor
@@ -176,7 +120,6 @@ def set_parallel_backend_context(backend: Union[str, BackendEngine], *args, **kw
         engine = _backend_engine.get()
 
         if engine is not None:
-            engine.disconnect()
             engine.shutdown()
 
         _backend_engine.reset(token)

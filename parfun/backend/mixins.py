@@ -1,15 +1,13 @@
 import abc
-import logging
-from concurrent.futures import wait
 from contextlib import AbstractContextManager
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from parfun.backend.profiled_future import ProfiledFuture
 
 
 class BackendSession(AbstractContextManager, metaclass=abc.ABCMeta):
     """
-    An task submitting session to a backend engine that manages the lifecycle of the task objects (preloaded values,
+    A task submitting session to a backend engine that manages the lifecycle of the task objects (preloaded values,
     argument values and future objects).
     """
 
@@ -55,30 +53,10 @@ class BackendEngine(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def submit(self, fn: Callable, *args, **kwargs) -> ProfiledFuture:
-        logging.warning("`submit()` will be removed in a future version, use `session()` instead.")
-
-        with self.session() as session:
-            future = session.submit(fn, *args, **kwargs)
-            wait([future])
-
-        return future
-
-    @abc.abstractmethod
-    def get_scheduler_address(self) -> Optional[str]:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def disconnect(self):
-        """
-        Disconnects from schedulers in backend engine
-        """
-        raise NotImplementedError()
-
     @abc.abstractmethod
     def shutdown(self):
         """
-        Shutdowns schedulers in backend engine
+        Shutdowns all resources required by the backend engine.
         """
         raise NotImplementedError()
 

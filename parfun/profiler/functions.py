@@ -18,7 +18,6 @@ def profile(timer_function: Callable[[], TraceTime] = time.process_time_ns):
     """
     Provides a Python ``with`` context that measures the execution time of the enclosing block.
 
-
     .. code:: python
 
         with profile() as duration:

@@ -2,8 +2,7 @@
 A collection of pre-define APIs to help users partition dataframe data
 """
 
-import logging
-from typing import Iterable, List, Literal, Tuple
+from typing import Iterable, List, Tuple
 
 try:
     import pandas as pd
@@ -139,44 +138,6 @@ def df_by_group(*args, **kwargs) -> PartitionFunction[pd.DataFrame]:
                 return
 
     return generator
-
-
-def dfs_by_row(*dfs: pd.DataFrame) -> PartitionGenerator[Tuple[pd.DataFrame, ...]]:
-    logging.warning(f"`{dfs_by_row.__name__}` will be removed in a future version, use `{df_by_row.__name__}` instead.")
-
-    return df_by_row(*dfs)
-
-
-def partition_dfs_by_chunk(*dfs: pd.DataFrame) -> PartitionGenerator[Tuple[pd.DataFrame, ...]]:
-    logging.warning(
-        f"`{partition_dfs_by_chunk.__name__}` will be removed in a future version, use `{df_by_row.__name__}` instead."
-    )
-
-    return df_by_row(*dfs)
-
-
-def dfs_by_group(*args, **kwargs) -> PartitionFunction:
-    logging.warning(
-        f"`{dfs_by_group.__name__}` will be removed in a future version, use `{df_by_group.__name__}` instead."
-    )
-
-    return df_by_group(*args, **kwargs)
-
-
-def partition_dfs_group_by(
-    *dfs: pd.DataFrame,
-    by,
-    axis: Literal["index", "columns"] = "index",
-    as_index: bool = True,
-    sort: bool = True,
-    group_keys: bool = False,
-) -> PartitionGenerator[Tuple[pd.DataFrame, ...]]:
-    logging.warning(
-        f"`{partition_dfs_group_by.__name__}` will be removed in a future version, use "
-        + f"`{df_by_group.__name__}` instead."
-    )
-
-    return df_by_group(by=by, axis=axis, as_index=as_index, sort=sort, group_keys=group_keys)(*dfs)
 
 
 def __validate_dfs_parameter(*dfs: pd.DataFrame) -> None:
