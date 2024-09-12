@@ -1,6 +1,7 @@
 import unittest
 
 from parfun.entry_point import set_parallel_backend
+from parfun.partition.api import all_arguments, per_argument
 from parfun.kernel.parallel_function import ParallelFunction
 
 
@@ -14,36 +15,16 @@ class TestParallelFunction(unittest.TestCase):
         ParallelFunction(
             function=lambda x, y: x + y,  # type: ignore[misc, arg-type]
             function_name="lambda",
-            partition_on=("x",),
-            partition_with=lambda x: [(x,)],  # type: ignore[arg-type, return-value]
+            split=per_argument(x=lambda x: [(x,)]),  # type: ignore[arg-type, return-value]
             combine_with=sum,
         )
 
         ParallelFunction(
             function=lambda *args, **kwargs: tuple(),  # type: ignore[misc, arg-type]
             function_name="lambda",
-            partition_on=("x", "y"),
-            partition_with=lambda x, y: [(x, y)],  # type: ignore[arg-type, return-value]
+            split=all_arguments(lambda x, y: [(x, y)]),  # type: ignore[arg-type, return-value]
             combine_with=sum,
         )
-
-        with self.assertRaises(ValueError):
-            ParallelFunction(
-                function=lambda x, y: x + y,  # type: ignore[misc, arg-type]
-                function_name="lambda",
-                partition_on=(),
-                partition_with=lambda: [()],  # type: ignore[arg-type, return-value]
-                combine_with=sum,
-            )
-
-        with self.assertRaises(ValueError):
-            ParallelFunction(
-                function=lambda x, y: x + y,  # type: ignore[misc, arg-type]
-                function_name="lambda",
-                partition_on=["x", "z"],  # type: ignore[arg-type]
-                partition_with=lambda x, z: [(x, z)],  # type: ignore[arg-type, return-value]
-                combine_with=sum,
-            )
 
 
 if __name__ == "__main__":

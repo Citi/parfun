@@ -8,17 +8,15 @@ from typing import Callable, Iterable, Optional, Tuple, Union
 
 from parfun.kernel.function_signature import NamedArguments
 from parfun.kernel.parallel_function import ParallelFunction
-from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
-from parfun.partition.object import PartitionFunction, PartitionGenerator
+from parfun.object import FunctionInputType, FunctionOutputType
+from parfun.partition.object import PartitionGenerator
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
 
 
 def parfun(
+    split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]],
     combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
-    split: Optional[Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]] = None,
-    partition_on: Optional[Union[str, Tuple[str, ...]]] = None,
-    partition_with: Optional[PartitionFunction[PartitionType]] = None,
     initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
     fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
     profile: bool = False,
@@ -52,24 +50,6 @@ def parfun(
 
         See :py:mod:`~parfun.partition.api` for the list of predefined partitioning functions.
 
-        Cannot be used with ``partition_on`` or ``partition_with``.
-
-    :param partition_on:
-        Only partition the data on the provided fields or fields. To be used with ``partition_with``.
-
-        There are three constraints:
-
-        * the values should be consistent with some names of arguments in ``function``
-
-        * the numbers of ``partition_on`` should be equal to the number of arguments in ``partition_with``
-
-        * the order of ``partition_on`` should be consistent with the ones in ``partition_on``
-
-    :type partition_on: Tuple | str
-
-    :param partition_with: distributes the computation by running the function on the input.
-    :type partition_with: Callable
-
     :param combine_with: aggregates the results by running the function.
     :type combine_with: Callable
     :param initial_partition_size:
@@ -102,8 +82,6 @@ def parfun(
             function=function,
             function_name=function.__name__,
             split=split,
-            partition_on=partition_on,
-            partition_with=partition_with,
             combine_with=combine_with,
             initial_partition_size=initial_partition_size,
             fixed_partition_size=fixed_partition_size,

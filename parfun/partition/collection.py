@@ -2,7 +2,6 @@
 A collection of pre-define APIs to help users partition collection data, like list, array, tuple
 """
 
-import logging
 from typing import Iterable, Tuple
 
 from parfun.partition.object import PartitionGenerator, PartitionType
@@ -39,23 +38,3 @@ def list_by_chunk(*iterables: Iterable[PartitionType]) -> PartitionGenerator[Tup
 
     if partition:
         yield len(partition), tuple(zip(*partition))
-
-
-def lists_by_chunk(*iterables: Iterable[PartitionType]) -> PartitionGenerator[Tuple[Iterable[PartitionType], ...]]:
-    logging.warning(
-        f"`{lists_by_chunk.__name__}` will be removed in a future version, use "
-        + f"`{list_by_chunk.__name__}` instead."
-    )
-
-    return list_by_chunk(*iterables)
-
-
-def zip_partition_on_args(
-    *iterable: Iterable[PartitionType],
-) -> PartitionGenerator[Tuple[Iterable[PartitionType], ...]]:
-    logging.warning(
-        f"`{zip_partition_on_args.__name__}` will be removed in a future version, use "
-        + f"`{list_by_chunk.__name__}` instead."
-    )
-
-    return list_by_chunk(*iterable)

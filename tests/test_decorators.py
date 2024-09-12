@@ -16,7 +16,7 @@ from parfun.decorators import parfun
 from parfun.entry_point import (
     BACKEND_REGISTRY, get_parallel_backend, set_parallel_backend, set_parallel_backend_context
 )
-from parfun.partition.api import per_argument
+from parfun.partition.api import multiple_arguments, per_argument
 from parfun.partition.collection import list_by_chunk
 from parfun.partition.dataframe import df_by_row
 from parfun.partition.object import PartitionGenerator
@@ -165,7 +165,7 @@ class TestDecorators(unittest.TestCase):
         self.assertTrue(sequential.equals(parallel))
 
 
-@parfun(partition_on=("col1", "col2", "col3"), partition_with=list_by_chunk, combine_with=sum, fixed_partition_size=100)
+@parfun(split=multiple_arguments(("col1", "col2", "col3"), list_by_chunk), combine_with=sum, fixed_partition_size=100)
 def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[int], constant: int) -> int:
     result = 0
     for i in zip(col1, col2, col3):
@@ -174,12 +174,12 @@ def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[i
     return result
 
 
-@parfun(partition_on="values", partition_with=df_by_row, combine_with=df_concat)
+@parfun(split=per_argument(values=df_by_row), combine_with=df_concat)
 def _find_all_nth_primes(values: pd.DataFrame) -> pd.DataFrame:
     return values.apply(lambda series: series.apply(find_nth_prime))
 
 
-@parfun(partition_on=("a", "b"), partition_with=list_by_chunk, combine_with=df_concat)
+@parfun(split=multiple_arguments(("a", "b"), list_by_chunk), combine_with=df_concat)
 def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) -> pd.DataFrame:
     list_of_df = []
     for i, j in zip(a, b):
@@ -207,7 +207,7 @@ def _delayed_combine(values: Iterable[float]) -> float:
     return result
 
 
-@parfun(partition_on="values", partition_with=_delayed_partition, combine_with=_delayed_combine)
+@parfun(split=per_argument(values=_delayed_partition), combine_with=_delayed_combine)
 def _delayed_sum(values: Iterable[float]) -> float:
     logging.debug("start delayed sum")
     result = sum(values)
@@ -229,7 +229,7 @@ def _nested_child_function(parent_pids: List[int]) -> List[Tuple[int, int]]:
     return [(parent_pid, child_pid) for parent_pid in parent_pids]
 
 
-@parfun(partition_on="values", partition_with=list_by_chunk, combine_with=list_concat, fixed_partition_size=10)
+@parfun(split=per_argument(values=list_by_chunk), combine_with=list_concat, fixed_partition_size=10)
 def _fixed_partition_size(values: List) -> List:
     if len(values) != 10:
         raise ValueError("invalid fixed partition size.")
@@ -249,11 +249,6 @@ def _per_argument_sum(a: List, b: pd.DataFrame) -> pd.DataFrame:
         result.iloc[i, :] *= v
 
     return result
-
-
-def _custom_partition_lists(*args: List) -> PartitionGenerator[Tuple[List, ...]]:
-    for values in zip(*args):
-        yield tuple([v] for v in values)
 
 
 if __name__ == "__main__":
