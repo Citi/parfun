@@ -10,12 +10,16 @@
   </p>
 
   <p align="center">
+    <a href="https://citi.github.io/parfun/">
+      <img src="https://img.shields.io/badge/read%20our%20documentation-0f1632">
+    </a>
     <a href="./LICENSE">
-        <img src="https://img.shields.io/github/license/citi/parfun?label=license&colorA=0f1632&colorB=255be3">
+      <img src="https://img.shields.io/github/license/citi/parfun?label=license&colorA=0f1632&colorB=255be3">
     </a>
     <a href="https://pypi.org/project/parfun/">
       <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/parfun?colorA=0f1632&colorB=255be3">
     </a>
+    <img src="https://api.securityscorecards.dev/projects/github.com/Citi/parfun/badge">
   </p>
 </div>
 
@@ -43,6 +47,7 @@ def list_pow(values: List[float], factor: float) -> List[float]:
     return [v**factor for v in values]
 ```
 
+
 ## Features
 
 * **Provides significant speedups** to existing Python functions
@@ -64,19 +69,21 @@ When running a short 0.28-second ML function on an AMD Epyc 7313 16-Cores Proces
 
 
 ## Quick Start
-The built-in Sphinx documentation contains detailed usage instructions, implementation details, and an exhaustive
-API reference.
 
-Use the `doc` Make target to build the HTML documentation from the source code:
+The official documentation is availaible at [citi.github.io/parfun/](https://citi.github.io/parfun/).
+
+Alternatively, you can build the HTML documentation from the source code:
 
 ```bash
-make doc
+cd docs
+pip install -r requirements.txt
+make html
 ```
 
 The documentation's main page can then ben found at `docs/build/html/index.html`.
 
-Take a look at our documentation's [quickstart tutorial](./docs/build/html/tutorials/quickstart.html) to get more
-examples and a deeper overview of the library.
+Take a look at our documentation's [quickstart tutorial](https://citi.github.io/parfun/tutorials/quickstart.html) to get
+more examples and a deeper overview of the library.
 
 
 ## Contributing
