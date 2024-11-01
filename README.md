@@ -19,6 +19,7 @@
     <a href="https://pypi.org/project/parfun/">
       <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/parfun?colorA=0f1632&colorB=255be3">
     </a>
+    <img src="https://api.securityscorecards.dev/projects/github.com/Citi/parfun/badge">
   </p>
 </div>
 
