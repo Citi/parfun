@@ -1,8 +1,9 @@
 import inspect
 import itertools
+import threading
 from collections import deque
 from threading import BoundedSemaphore
-from typing import Any, Deque, Dict, List, Optional, Set
+from typing import Any, Deque, Dict, Optional, Set
 
 try:
     from scaler import Client, SchedulerClusterCombo
@@ -87,33 +88,37 @@ class ScalerClientPool:
         self._client_kwargs = client_kwargs
         self._max_unused_clients = max_unused_clients
 
+        self._lock = threading.Lock()
         self._assigned_clients: Dict[bytes, Client] = {}
         self._unassigned_clients: Deque[Client] = deque()  # a FIFO poll of up to `max_unused_clients`.
 
     def acquire(self) -> Client:
-        if len(self._unassigned_clients) > 0:
-            client = self._unassigned_clients.popleft()
-        else:
-            client = Client(address=self._scheduler_address, profiling=True, **self._client_kwargs)
+        with self._lock:
+            if len(self._unassigned_clients) > 0:
+                client = self._unassigned_clients.popleft()
+            else:
+                client = Client(address=self._scheduler_address, profiling=True, **self._client_kwargs)
 
-        self._assigned_clients[client.identity] = client
+            self._assigned_clients[client.identity] = client
 
-        return client
+            return client
 
     def release(self, client: Client) -> None:
-        self._assigned_clients.pop(client.identity)
+        with self._lock:
+            self._assigned_clients.pop(client.identity)
 
-        if len(self._unassigned_clients) < self._max_unused_clients:
-            self._unassigned_clients.append(client)
-        else:
-            client.disconnect()
+            if len(self._unassigned_clients) < self._max_unused_clients:
+                self._unassigned_clients.append(client)
+            else:
+                client.disconnect()
 
     def disconnect_all(self) -> None:
-        for client in itertools.chain(self._unassigned_clients, self._assigned_clients.values()):
-            client.disconnect()
+        with self._lock:
+            for client in itertools.chain(self._unassigned_clients, self._assigned_clients.values()):
+                client.disconnect()
 
-        self._unassigned_clients.clear()
-        self._assigned_clients.clear()
+            self._unassigned_clients.clear()
+            self._assigned_clients.clear()
 
 
 class ScalerRemoteBackend(BackendEngine):
