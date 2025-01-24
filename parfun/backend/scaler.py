@@ -1,6 +1,9 @@
 import inspect
+import itertools
+import threading
+from collections import deque
 from threading import BoundedSemaphore
-from typing import Any, Optional, Set
+from typing import Any, Deque, Dict, Optional, Set
 
 try:
     from scaler import Client, SchedulerClusterCombo
@@ -21,18 +24,20 @@ class ScalerSession(BackendSession):
     # Additional constant scheduling overhead that cannot be accounted for when measuring the task execution duration.
     CONSTANT_SCHEDULING_OVERHEAD = 8_000_000  # 8ms
 
-    def __init__(self, scheduler_address: str, n_workers: int, **kwargs):
+    def __init__(self, client_pool: "ScalerClientPool", n_workers: int):
         self._concurrent_task_guard = BoundedSemaphore(n_workers)
-        self.client = Client(address=scheduler_address, profiling=True, **kwargs)
+        self._client_poll = client_pool
+        self._client = client_pool.acquire()
 
     def __enter__(self) -> "ScalerSession":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self.client.disconnect()
+        self._client.clear()
+        self._client_poll.release(self._client)
 
     def preload_value(self, value: Any) -> ObjectReference:
-        return self.client.send_object(value)
+        return self._client.send_object(value)
 
     def submit(self, fn, *args, **kwargs) -> Optional[ProfiledFuture]:
         with profile() as submit_duration:
@@ -42,7 +47,7 @@ class ScalerSession(BackendSession):
             if not acquired:
                 return None
 
-            underlying_future = self.client.submit(fn, *args, **kwargs)
+            underlying_future = self._client.submit(fn, *args, **kwargs)
 
         def on_done_callback(underlying_future: ScalerFuture):
             assert submit_duration.value is not None
@@ -75,6 +80,45 @@ class ScalerSession(BackendSession):
         underlying_future.add_done_callback(on_done_callback)
 
         return future
+
+
+class ScalerClientPool:
+    def __init__(self, scheduler_address: str, client_kwargs: Dict, max_unused_clients: int = 1):
+        self._scheduler_address = scheduler_address
+        self._client_kwargs = client_kwargs
+        self._max_unused_clients = max_unused_clients
+
+        self._lock = threading.Lock()
+        self._assigned_clients: Dict[bytes, Client] = {}
+        self._unassigned_clients: Deque[Client] = deque()  # a FIFO poll of up to `max_unused_clients`.
+
+    def acquire(self) -> Client:
+        with self._lock:
+            if len(self._unassigned_clients) > 0:
+                client = self._unassigned_clients.popleft()
+            else:
+                client = Client(address=self._scheduler_address, profiling=True, **self._client_kwargs)
+
+            self._assigned_clients[client.identity] = client
+
+            return client
+
+    def release(self, client: Client) -> None:
+        with self._lock:
+            self._assigned_clients.pop(client.identity)
+
+            if len(self._unassigned_clients) < self._max_unused_clients:
+                self._unassigned_clients.append(client)
+            else:
+                client.disconnect()
+
+    def disconnect_all(self) -> None:
+        with self._lock:
+            for client in itertools.chain(self._unassigned_clients, self._assigned_clients.values()):
+                client.disconnect()
+
+            self._unassigned_clients.clear()
+            self._assigned_clients.clear()
 
 
 class ScalerRemoteBackend(BackendEngine):
@@ -110,17 +154,22 @@ class ScalerRemoteBackend(BackendEngine):
         self._allows_nested_tasks = state["allows_nested_tasks"]
         self._client_kwargs = state["client_kwargs"]
 
+        self._client_pool = ScalerClientPool(
+            scheduler_address=self._scheduler_address,
+            client_kwargs=self._client_kwargs,
+        )
+
     def session(self) -> ScalerSession:
-        return ScalerSession(self._scheduler_address, self._n_workers, **self._client_kwargs)
+        return ScalerSession(self._client_pool, self._n_workers)
 
     def get_scheduler_address(self) -> str:
         return self._scheduler_address
 
     def disconnect(self):
-        pass
+        return self._client_pool.disconnect_all()
 
     def shutdown(self):
-        pass
+        return self._client_pool.disconnect_all()
 
     def allows_nested_tasks(self) -> bool:
         return self._allows_nested_tasks
@@ -176,6 +225,8 @@ class ScalerLocalBackend(ScalerRemoteBackend):
         return self._cluster
 
     def shutdown(self):
+        super().shutdown()
+
         if self._cluster is not None:
             self._cluster.shutdown()
             self._cluster = None

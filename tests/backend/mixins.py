@@ -1,8 +1,10 @@
 import abc
+import math
 import time
 import timeit
 import warnings
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from typing import Deque
 
 from parfun.backend.mixins import BackendEngine, ProfiledFuture
@@ -156,3 +158,21 @@ class BackendEngineTestCase(metaclass=abc.ABCMeta):
             with self.assertRaises(Exception):  # type: ignore[attr-defined]
                 # Must propagate inner tasks' exceptions.
                 session.submit(nested_task, self.backend(), must_fail=True).result()
+
+    def test_is_threadsafe(self):
+        """Validates that the backend can be used from multiple concurrent threads."""
+
+        N_THREADS = 20
+        N_TASKS = N_THREADS * 10
+
+        def threaded_backend_session(arg):
+            try:
+                with self.backend().session() as session:
+                    return session.submit(math.pow, 2, 3).result() == math.pow(2, 3)
+            except Exception:
+                return False
+
+        with ThreadPoolExecutor(max_workers=N_THREADS) as thread_executor:
+            results = thread_executor.map(threaded_backend_session, [()] * N_TASKS)
+
+            self.assertTrue(all(results))  # type: ignore[attr-defined]
