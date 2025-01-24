@@ -155,8 +155,7 @@ class ScalerRemoteBackend(BackendEngine):
         self._client_kwargs = state["client_kwargs"]
 
         self._client_pool = ScalerClientPool(
-            scheduler_address=self._scheduler_address,
-            client_kwargs=self._client_kwargs,
+            scheduler_address=self._scheduler_address, client_kwargs=self._client_kwargs
         )
 
     def session(self) -> ScalerSession:

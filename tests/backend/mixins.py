@@ -117,9 +117,9 @@ class BackendEngineTestCase(metaclass=abc.ABCMeta):
         futures: Deque[ProfiledFuture] = deque()
         total_task_duration = 0
 
-        with profile() as process_time,                     \
-             profile(time.perf_counter_ns) as eslaped_time, \
-             self.backend().session() as session:
+        with profile() as process_time, profile(
+            time.perf_counter_ns
+        ) as eslaped_time, self.backend().session() as session:
             i = 0
             current_concurrency = 0
             while i < ITERATIONS:
@@ -142,7 +142,7 @@ class BackendEngineTestCase(metaclass=abc.ABCMeta):
         delta = measured_duration * TOLERANCE
 
         if abs(measured_duration - total_task_duration) < delta:
-            warnings.warn(f"Excpected execution duration of {total_task_duration} ns, measured {measured_duration} ns.")
+            warnings.warn(f"Expected execution duration of {total_task_duration} ns, measured {measured_duration} ns.")
 
     def test_supports_nested_tasks(self):
         """Validates that the backend supports nested tasks if it reports it."""
