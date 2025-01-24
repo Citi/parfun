@@ -14,7 +14,10 @@ from parfun.combine.collection import list_concat
 from parfun.combine.dataframe import df_concat
 from parfun.decorators import parfun
 from parfun.entry_point import (
-    BACKEND_REGISTRY, get_parallel_backend, set_parallel_backend, set_parallel_backend_context
+    BACKEND_REGISTRY,
+    get_parallel_backend,
+    set_parallel_backend,
+    set_parallel_backend_context,
 )
 from parfun.partition.api import multiple_arguments, per_argument
 from parfun.partition.collection import list_by_chunk

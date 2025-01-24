@@ -29,19 +29,11 @@ class MeanRegressor(RegressorMixin):
         self._regressors = regressors
 
     def predict(self, X):
-        return np.mean([
-            regressor.predict(X)
-            for regressor in self._regressors
-        ])
+        return np.mean([regressor.predict(X) for regressor in self._regressors])
 
 
-@parfun(
-    split=per_argument(dataframe=df_by_row),
-    combine_with=lambda regressors: MeanRegressor(list(regressors)),
-)
-def train_regressor(
-    dataframe: pd.DataFrame, feature_names: List[str], target_name: str
-) -> RegressorMixin:
+@parfun(split=per_argument(dataframe=df_by_row), combine_with=lambda regressors: MeanRegressor(list(regressors)))
+def train_regressor(dataframe: pd.DataFrame, feature_names: List[str], target_name: str) -> RegressorMixin:
 
     regressor = DecisionTreeRegressor()
     regressor.fit(dataframe[feature_names], dataframe[[target_name]])
@@ -52,17 +44,8 @@ def train_regressor(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("n_workers", action="store", type=int)
-    parser.add_argument(
-        "--backend",
-        type=str,
-        choices=BACKEND_REGISTRY.keys(),
-        default="local_multiprocessing",
-    )
-    parser.add_argument(
-        "--backend_args",
-        type=str,
-        default="{}",
-    )
+    parser.add_argument("--backend", type=str, choices=BACKEND_REGISTRY.keys(), default="local_multiprocessing")
+    parser.add_argument("--backend_args", type=str, default="{}")
 
     args = parser.parse_args()
 
@@ -79,10 +62,10 @@ if __name__ == "__main__":
     with set_parallel_backend_context("local_single_process"):
         regressor = train_regressor(dataframe, feature_names, target_name)
 
-        duration = timeit.timeit(
-            lambda: train_regressor(dataframe, feature_names, target_name),
-            number=N_MEASURES
-        ) / N_MEASURES
+        duration = (
+            timeit.timeit(lambda: train_regressor(dataframe, feature_names, target_name), number=N_MEASURES)
+            / N_MEASURES
+        )
 
         print("Duration sequential:", duration)
 
@@ -91,9 +74,9 @@ if __name__ == "__main__":
     with set_parallel_backend_context(args.backend, **backend_args):
         regressor = train_regressor(dataframe, feature_names, target_name)
 
-        duration = timeit.timeit(
-            lambda: train_regressor(dataframe, feature_names, target_name),
-            number=N_MEASURES
-        ) / N_MEASURES
+        duration = (
+            timeit.timeit(lambda: train_regressor(dataframe, feature_names, target_name), number=N_MEASURES)
+            / N_MEASURES
+        )
 
         print("Duration parallel:", duration)

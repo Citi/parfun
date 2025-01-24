@@ -2,6 +2,7 @@ import unittest
 
 try:
     from parfun.backend.dask import DaskLocalClusterBackend, DaskRemoteClusterBackend
+
     dask_available = True
 except ImportError:
     dask_available = False

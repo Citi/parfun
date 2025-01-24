@@ -1,8 +1,10 @@
 import unittest
 
 from parfun.backend.mixins import BackendEngine
+
 try:
     from parfun.backend.scaler import ScalerLocalBackend, ScalerRemoteBackend
+
     scaler_installed = True
 except ImportError:
     scaler_installed = False
