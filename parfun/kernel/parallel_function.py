@@ -17,7 +17,7 @@ from parfun.profiler.functions import export_task_trace, print_profile_trace, ti
 from parfun.profiler.object import PartitionedTaskTrace
 
 
-@attrs.define(init=False)
+@attrs.define
 class ParallelFunction:
     """Wraps a function so that it executes in parallel using a map-reduce/scatter-gather approach.
 
@@ -32,47 +32,27 @@ class ParallelFunction:
 
     combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType] = attrs.field()
 
-    initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
-    fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field()
+    initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field(default=None)
+    fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = attrs.field(default=None)
 
-    profile: bool = attrs.field()
-    trace_export: Optional[str] = attrs.field()
+    profile: bool = attrs.field(default=None)
+    trace_export: Optional[str] = attrs.field(default=None)
+
+    partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = attrs.field(
+        default=LinearRegessionEstimator
+    )
 
     _partition_size_estimator: Optional[PartitionSizeEstimator] = attrs.field(init=False, default=None)
-
     _function_signature: FunctionSignature = attrs.field(init=False)
-    _partition_arg_names: Tuple[str] = attrs.field(init=False)
 
-    def __init__(
-        self,
-        function: Callable[[FunctionInputType], FunctionOutputType],
-        function_name: str,
-        split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]],
-        combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
-        initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
-        fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
-        profile: bool = False,
-        trace_export: Optional[str] = None,
-        partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = LinearRegessionEstimator,
-    ):
-        self.__attrs_init__(  # type: ignore[attr-defined]
-            function=function,
-            function_name=function_name,
-            split=split,
-            combine_with=combine_with,
-            initial_partition_size=initial_partition_size,
-            fixed_partition_size=fixed_partition_size,
-            profile=profile,
-            trace_export=trace_export,
-        )
-
+    def __attrs_post_init__(self) -> None:
         self._function_signature = FunctionSignature.from_function(self.function)
 
         if self.initial_partition_size is not None and self.fixed_partition_size is not None:
             raise ValueError("`initial_partition_size` and `fixed_partition_size` cannot be set simultaneously.")
 
         if self.fixed_partition_size is None:
-            self._partition_size_estimator = partition_size_estimator_factory()
+            self._partition_size_estimator = self.partition_size_estimator_factory()
 
         self._validate_function_signature()
 
