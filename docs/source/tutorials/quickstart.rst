@@ -75,6 +75,11 @@ computations separately for each country**:
 
 .. code-block:: python
 
+    from typing import List
+
+    import pandas as pd
+
+
     def relative_metrics(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
         """
         Computes relative metrics (difference to mean, median ...) of a dataframe, for each of the requested dataframe's
@@ -190,15 +195,16 @@ partitioning functions on various parameters:
     from parfun.partition.collection import list_by_chunk
     from parfun.partition.dataframe import df_by_row
 
+
     @parfun(
         split=per_argument(
             values=list_by_chunk,
             df_1=df_by_row,
             df_2=df_by_row,
-        )
+        ),
         ...
     )
-    def func(values: List, df_1: pd.DataFrame, df_2: pd.DataFrame)
+    def func(values: List, df_1: pd.DataFrame, df_2: pd.DataFrame):
         ...
 
 
@@ -210,7 +216,7 @@ semantically equivalent to iterating all these partitioned arguments simultaneou
 .. code-block:: python
 
     size = min(len(values), df_1.shape[0], df_2.shape[0])
-    for begin in range(0, end, PARTITION_SIZE):
+    for begin in range(0, size, PARTITION_SIZE):
         end = min(begin + PARTITION_SIZE, size)
         func(values[begin:end], df_1.iloc[begin:end], df_2.iloc[begin:end])
 
@@ -226,7 +232,8 @@ Alternatively, it might be sometimes desired to run the same partitioning functi
     from parfun.partition.dataframe import df_by_row
 
     @parfun(
-        split=all_arguments(df_by_group(by=["year", "month"]))
+        split=all_arguments(df_by_group(by=["year", "month"])),
+        ...
     )
     def func(df_1: pd.DataFrame, df_2: pd.DataFrame):
         ...
@@ -240,7 +247,10 @@ If you wish to implement more complex partitioning schemes, ``parfun`` allows th
 
 .. code:: python
 
-    def partition_by_week(df: pd.DataFrame) -> Generator[Tuple[pd.DataFrame]]:
+    from typing import Generator, Tuple
+
+
+    def partition_by_week(df: pd.DataFrame) -> Generator[Tuple[pd.DataFrame], None, None]:
         for _, partition in df.groupby(by=df["year-day"] // 7):
             yield partition,  # Should always yield a tuple that matches the input parameters.
 
@@ -337,14 +347,14 @@ inner functions sequentially, as regular Python functions.
 
 .. code-block:: python
 
-    @parfun(split=per_argument(values=list_by_chunk))
+    @parfun(split=per_argument(values=list_by_chunk), ...)
     def parent_func(values: List[float]):
         ...
         result = child_func(df)
         ...
 
 
-    @parfun(split=split(df_by_group(by=["year", "month"])))
+    @parfun(split=split(df_by_group(by=["year", "month"])), ...)
     def child_func(df: pd.DataFrame):
         ...
 
