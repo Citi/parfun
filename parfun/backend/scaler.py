@@ -24,17 +24,15 @@ class ScalerSession(BackendSession):
     # Additional constant scheduling overhead that cannot be accounted for when measuring the task execution duration.
     CONSTANT_SCHEDULING_OVERHEAD = 8_000_000  # 8ms
 
-    def __init__(self, client_pool: "ScalerClientPool", n_workers: int):
+    def __init__(self, scheduler_address: str, n_workers: int, client_kwargs: Dict):
         self._concurrent_task_guard = BoundedSemaphore(n_workers)
-        self._client_poll = client_pool
-        self._client = client_pool.acquire()
+        self._client = Client(address=scheduler_address, profiling=True, **client_kwargs)
 
     def __enter__(self) -> "ScalerSession":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self._client.clear()
-        self._client_poll.release(self._client)
+        self._client.disconnect()
 
     def preload_value(self, value: Any) -> ObjectReference:
         return self._client.send_object(value)
@@ -154,21 +152,17 @@ class ScalerRemoteBackend(BackendEngine):
         self._allows_nested_tasks = state["allows_nested_tasks"]
         self._client_kwargs = state["client_kwargs"]
 
-        self._client_pool = ScalerClientPool(
-            scheduler_address=self._scheduler_address, client_kwargs=self._client_kwargs
-        )
-
     def session(self) -> ScalerSession:
-        return ScalerSession(self._client_pool, self._n_workers)
+        return ScalerSession(self._scheduler_address, self._n_workers, self._client_kwargs)
 
     def get_scheduler_address(self) -> str:
         return self._scheduler_address
 
     def disconnect(self):
-        return self._client_pool.disconnect_all()
+        pass
 
     def shutdown(self):
-        return self._client_pool.disconnect_all()
+        pass
 
     def allows_nested_tasks(self) -> bool:
         return self._allows_nested_tasks
