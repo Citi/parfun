@@ -1,6 +1,6 @@
 from typing import Callable, Optional, Sequence, Tuple, TypeVar, cast
 
-from parfun.partition.object import PartitionGenerator, PartitionType, SmartPartitionGenerator, SimplePartitionIterator
+from parfun.partition.object import PartitionGenerator, PartitionType, SimplePartitionIterator, SmartPartitionGenerator
 
 InputPartitionType = TypeVar("InputPartitionType", bound=Tuple)
 OutputPartitionType = TypeVar("OutputPartitionType", bound=Tuple)
