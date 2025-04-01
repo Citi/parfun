@@ -18,9 +18,7 @@ class TestScalerBackend(unittest.TestCase, BackendEngineTestCase):
     N_WORKERS = 4
 
     def setUp(self) -> None:
-        self._backend = ScalerLocalBackend(
-            n_workers=TestScalerBackend.N_WORKERS, per_worker_queue_size=1, logging_paths=("/tmp/loggingfile",)
-        )
+        self._backend = ScalerLocalBackend(n_workers=TestScalerBackend.N_WORKERS, per_worker_queue_size=1)
 
         warmup_workers(self._backend, self.n_workers())
 

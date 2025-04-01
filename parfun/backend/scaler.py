@@ -127,9 +127,6 @@ class ScalerRemoteBackend(BackendEngine):
         scheduler_address: str,
         n_workers: int = psutil.cpu_count(logical=False) - 1,
         allows_nested_tasks: bool = True,
-        logging_paths: Tuple[str] = ("/dev/stdout",),
-        logging_level: str = "INFO",
-        logging_config_file: Optional[str] = None,
         **client_kwargs,
     ):
         self.__setstate__(
@@ -137,9 +134,6 @@ class ScalerRemoteBackend(BackendEngine):
                 "scheduler_address": scheduler_address,
                 "n_workers": n_workers,
                 "allows_nested_tasks": allows_nested_tasks,
-                "logging_paths": logging_paths,
-                "logging_level": logging_level,
-                "logging_config_file": logging_config_file,
                 "client_kwargs": client_kwargs,
             }
         )
@@ -149,9 +143,6 @@ class ScalerRemoteBackend(BackendEngine):
             "scheduler_address": self._scheduler_address,
             "n_workers": self._n_workers,
             "allows_nested_tasks": self._allows_nested_tasks,
-            "logging_paths": self._logging_paths,
-            "logging_level": self._logging_level,
-            "logging_config_file": self._logging_config_file,
             "client_kwargs": self._client_kwargs,
         }
 
@@ -159,9 +150,6 @@ class ScalerRemoteBackend(BackendEngine):
         self._scheduler_address = state["scheduler_address"]
         self._n_workers = state["n_workers"]
         self._allows_nested_tasks = state["allows_nested_tasks"]
-        self._logging_paths = state["logging_paths"]
-        self._logging_level = state["logging_level"]
-        self._logging_config_file = state["logging_config_file"]
         self._client_kwargs = state["client_kwargs"]
 
     def session(self) -> ScalerSession:
@@ -189,7 +177,7 @@ class ScalerLocalBackend(ScalerRemoteBackend):
         scheduler_address: Optional[str] = None,
         n_workers: int = psutil.cpu_count(logical=False) - 1,
         allows_nested_tasks: bool = True,
-        logging_paths: Tuple[str] = ("/dev/stdout",),
+        logging_paths: Tuple[str, ...] = ("/dev/stdout",),
         logging_level: str = "INFO",
         logging_config_file: Optional[str] = None,
         **kwargs,
@@ -209,9 +197,6 @@ class ScalerLocalBackend(ScalerRemoteBackend):
             scheduler_address=scheduler_address,
             allows_nested_tasks=allows_nested_tasks,
             n_workers=n_workers,
-            logging_paths=logging_paths,
-            logging_level=logging_level,
-            logging_config_file=logging_config_file,
             **{kwarg: value for kwarg, value in kwargs.items() if kwarg in client_kwargs},
         )
 
