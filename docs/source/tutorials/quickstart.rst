@@ -26,8 +26,8 @@ Other tasks cannot easily be parallelized:
   caused by our parallelization system (e.g. system communications and initialization).
 
 
-Setup
------
+Setup and backend selection
+---------------------------
 
 First, add the ``parfun`` package to your *requirements.txt* file, or install it using PIP:
 
@@ -41,7 +41,7 @@ backends, or to enable Pandas' support, use the `scaler`, `dask` and/or `scaler`
 
 .. code:: bash
 
-    pip install parfun[dask,scaler,pandas]
+    pip install "parfun[dask,scaler,pandas]""
 
 
 The library relies on a registered computing backend to schedule and distribute sub-tasks among a group of allocated
@@ -101,6 +101,15 @@ computations separately for each country**:
 
         return output
 
+    df = pd.DataFrame({
+        "company": ["Apple", "ASML", "Volkswagen", "Citigroup", "Tencent"],
+        "industry": ["technology", "technology", "manufacturing", "banking", "manufacturing"],
+        "country": ["US", "NL", "DE", "US", "CN"],
+        "market_cap": [2828000000000, 236000000000, 55550000000, 80310000000, 345000000000],
+        "revenue": [397000000000, 27180000000, 312000000000, 79840000000, 79000000000],
+        "workforce": [161000, 39850, 650951, 240000, 104503]
+    })
+
     print(df)
     #       company       industry country     market_cap       revenue  workforce
     # 0       Apple     technology      US  2828000000000  397000000000     161000
@@ -124,7 +133,7 @@ When executing the function on a large dataframe, **it takes a little bit more t
 
 .. code-block:: console
 
-    In [11]: %timeit relative_metrics(df, metric_columns)
+    In [11]: %timeit relative_metrics(df, ["market_cap", "revenue", "workforce"])
     3.72 s ± 42.5 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 
