@@ -3,7 +3,7 @@ import itertools
 import threading
 from collections import deque
 from threading import BoundedSemaphore
-from typing import Any, Deque, Dict, Optional, Set
+from typing import Any, Deque, Dict, Optional, Set, Tuple
 
 try:
     from scaler import Client, SchedulerClusterCombo
@@ -177,6 +177,9 @@ class ScalerLocalBackend(ScalerRemoteBackend):
         scheduler_address: Optional[str] = None,
         n_workers: int = psutil.cpu_count(logical=False) - 1,
         allows_nested_tasks: bool = True,
+        logging_paths: Tuple[str, ...] = ("/dev/stdout",),
+        logging_level: str = "INFO",
+        logging_config_file: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -202,6 +205,9 @@ class ScalerLocalBackend(ScalerRemoteBackend):
         self._cluster = SchedulerClusterCombo(
             address=scheduler_address,
             n_workers=n_workers,
+            logging_paths=logging_paths,
+            logging_level=logging_level,
+            logging_config_file=logging_config_file,
             per_worker_queue_size=per_worker_queue_size,
             **{kwarg: value for kwarg, value in kwargs.items() if kwarg in scheduler_cluster_combo_kwargs},
         )

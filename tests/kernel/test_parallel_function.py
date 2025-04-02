@@ -1,8 +1,8 @@
 import unittest
 
 from parfun.entry_point import set_parallel_backend
-from parfun.partition.api import all_arguments, per_argument
 from parfun.kernel.parallel_function import ParallelFunction
+from parfun.partition.api import all_arguments, per_argument
 
 
 class TestParallelFunction(unittest.TestCase):

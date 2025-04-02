@@ -1,7 +1,7 @@
 from typing import Callable, Generator, Optional, Union, cast
 
 from parfun.object import PartitionType
-from parfun.partition.object import PartitionGenerator, SmartPartitionGenerator, SimplePartitionIterator
+from parfun.partition.object import PartitionGenerator, SimplePartitionIterator, SmartPartitionGenerator
 
 
 def with_partition_size(
