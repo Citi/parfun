@@ -73,7 +73,18 @@ if __name__ == "__main__":
 
 ## Quick Start
 
+
+Install Parfun directly from PyPI:
+
+```bash
+pip install parfun
+pip install parfun[pandas,scaler,dask]  # with optional dependencies
+```
+
 The official documentation is available at [citi.github.io/parfun/](https://citi.github.io/parfun/).
+
+Take a look at our documentation's [quickstart tutorial](https://citi.github.io/parfun/tutorials/quickstart.html) to get
+more examples and a deeper overview of the library.
 
 Alternatively, you can build the HTML documentation from the source code:
 
@@ -84,9 +95,6 @@ make html
 ```
 
 The documentation's main page can then ben found at `docs/build/html/index.html`.
-
-Take a look at our documentation's [quickstart tutorial](https://citi.github.io/parfun/tutorials/quickstart.html) to get
-more examples and a deeper overview of the library.
 
 
 ## Benchmarks

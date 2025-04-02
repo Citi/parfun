@@ -16,6 +16,7 @@ Content
    :maxdepth: 2
 
    tutorials/quickstart
+   tutorials/examples
    tutorials/implementation_details
    api/index
 

@@ -1,5 +1,5 @@
 """
-This example counts the most common words in a large text dataset.
+This example counts the most common two-letters sequences (bigrams) in a large text file.
 
 Usage:
 
@@ -7,12 +7,12 @@ Usage:
 """
 
 import argparse
+import collections
 import json
 import os.path
 import psutil
 
-from collections import Counter
-from typing import Iterable, List
+from typing import Counter, Iterable, List
 
 from parfun import parfun
 from parfun.entry_point import BACKEND_REGISTRY, set_parallel_backend_context
@@ -21,7 +21,7 @@ from parfun.partition.collection import list_by_chunk
 
 
 def sum_counters(counters: Iterable[Counter[str]]) -> Counter[str]:
-    return sum(counters, start=Counter())
+    return sum(counters, start=collections.Counter())
 
 
 @parfun(
@@ -31,7 +31,7 @@ def sum_counters(counters: Iterable[Counter[str]]) -> Counter[str]:
     combine_with=sum_counters,
 )
 def count_bigrams(lines: List[str]) -> Counter:
-    counter: Counter[str] = Counter()
+    counter: Counter[str] = collections.Counter()
 
     for line in lines:
         for word in line.split():
