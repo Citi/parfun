@@ -6,16 +6,14 @@ Usage:
     $ python -m examples.count_bigrams.main
 """
 
-import argparse
 import collections
-import json
 import psutil
 
 from typing import Counter, Iterable, List
 from urllib.request import urlopen
 
 from parfun import parfun
-from parfun.entry_point import BACKEND_REGISTRY, set_parallel_backend_context
+from parfun.entry_point import set_parallel_backend_context
 from parfun.partition.api import per_argument
 from parfun.partition.collection import list_by_chunk
 
@@ -43,29 +41,16 @@ def count_bigrams(lines: List[str]) -> Counter:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "url",
-        action="store",
-        type=str,
-        nargs="?",
-        default="https://www.gutenberg.org/ebooks/100.txt.utf-8",
-    )
+    N_WORKERS = psutil.cpu_count(logical=False)
+    URL = "https://www.gutenberg.org/ebooks/100.txt.utf-8"
+    TOP_K = 10
 
-    parser.add_argument("--n_workers", action="store", type=int, default=psutil.cpu_count(logical=False))
-    parser.add_argument("--top-k", type=int, default=10)
-    parser.add_argument("--backend", type=str, choices=BACKEND_REGISTRY.keys(), default="local_multiprocessing")
-    parser.add_argument("--backend_args", type=str, default="{}")
-
-    args = parser.parse_args()
-
-    with urlopen(args.url) as response:
+    with urlopen(URL) as response:
         content = response.read().decode("utf-8").splitlines()
 
-    backend_args = {"max_workers": args.n_workers, **json.loads(args.backend_args)}
-    with set_parallel_backend_context(args.backend, **backend_args):
+    with set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):
         counts = count_bigrams(content)
 
-    print(f"Top {args.top_k} words:")
-    for word, count in counts.most_common(args.top_k):
+    print(f"Top {TOP_K} words:")
+    for word, count in counts.most_common(TOP_K):
         print(f"\t{word:<10}:\t{count}")
