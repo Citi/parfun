@@ -44,3 +44,16 @@ jobs:
       - name: Run python unittest
         run: |
           python -m unittest discover -v tests
+      - name: Run the examples
+        run: |
+          for dir in "./examples"/*; do
+            if [ -f "$dir/main.py" ]; then
+                echo "Running $dir/main.py"
+                PYTHONPATH=. python "$dir/main.py"
+            fi
+          done
+      - name: Test the documentation examples
+        run: |
+          pip install -r docs/requirements.txt
+          cd docs
+          make doctest

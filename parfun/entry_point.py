@@ -3,6 +3,7 @@ APIs to manage backends and integrate the toolkit with other projects.
 """
 
 import argparse
+import atexit
 import contextlib
 import logging
 import os
@@ -55,7 +56,7 @@ def set_parallel_backend(backend: Union[str, BackendEngine], *args, **kwargs) ->
 
           Functions decorated with :py:func:`~parfun.decorators.parfun` will run sequentially as if not decorated.
 
-          Partitionning and combining functions will be ignored.
+          Partitioning and combining functions will be ignored.
 
         * ``"local_single_process"``: runs the tasks inside the calling Python process.
 
@@ -97,6 +98,7 @@ def set_parallel_backend(backend: Union[str, BackendEngine], *args, **kwargs) ->
     :param kwargs: Additional keyword parameters for the backend constructor.
     :rtype: None
     """
+    _cleanup_current_backend()
     _set_parallel_backend(backend, *args, **kwargs)
 
 
@@ -117,10 +119,7 @@ def set_parallel_backend_context(backend: Union[str, BackendEngine], *args, **kw
     try:
         yield
     finally:
-        engine = _backend_engine.get()
-
-        if engine is not None:
-            engine.shutdown()
+        _cleanup_current_backend()
 
         _backend_engine.reset(token)
 
@@ -170,3 +169,10 @@ def _set_parallel_backend(backend: Union[str, BackendEngine], *args, **kwargs) -
     logging.info(f"Set up parallel backend: {backend_name}")
 
     return _backend_engine.set(backend_instance)
+
+
+@atexit.register
+def _cleanup_current_backend():
+    engine = _backend_engine.get()
+    if engine is not None:
+        engine.shutdown()

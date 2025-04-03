@@ -21,7 +21,6 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 project = "Parfun"
 author = "Citi"
 
-
 version = __import__("parfun").__version__
 release = f"{version}-py3-none-any"
 
