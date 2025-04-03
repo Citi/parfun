@@ -1,5 +1,5 @@
 """
-This example counts the most common two-letters sequences (bigrams) in a large text file.
+This example counts the most common two-letters sequences (bigrams) in the content of an URL.
 
 Usage:
 
@@ -9,10 +9,10 @@ Usage:
 import argparse
 import collections
 import json
-import os.path
 import psutil
 
 from typing import Counter, Iterable, List
+from urllib.request import urlopen
 
 from parfun import parfun
 from parfun.entry_point import BACKEND_REGISTRY, set_parallel_backend_context
@@ -45,11 +45,11 @@ def count_bigrams(lines: List[str]) -> Counter:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "input_file",
+        "url",
         action="store",
         type=str,
         nargs="?",
-        default=os.path.join(os.path.dirname(__file__), "the_complete_works_of_william_shakespeare.txt"),
+        default="https://www.gutenberg.org/ebooks/100.txt.utf-8",
     )
 
     parser.add_argument("--n_workers", action="store", type=int, default=psutil.cpu_count(logical=False))
@@ -59,11 +59,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    backend_args = {"max_workers": args.n_workers, **json.loads(args.backend_args)}
+    with urlopen(args.url) as response:
+        content = response.read().decode("utf-8").splitlines()
 
+    backend_args = {"max_workers": args.n_workers, **json.loads(args.backend_args)}
     with set_parallel_backend_context(args.backend, **backend_args):
-        with open(args.input_file, "r") as f:
-            counts = count_bigrams(f.readlines())
+        counts = count_bigrams(content)
 
     print(f"Top {args.top_k} words:")
     for word, count in counts.most_common(args.top_k):

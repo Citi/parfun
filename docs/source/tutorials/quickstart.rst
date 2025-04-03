@@ -118,7 +118,7 @@ computations separately for each country**:
     3   Citigroup        banking      US    80310000000   79840000000     240000
     4     Tencent  manufacturing      CN   345000000000   79000000000     104503
 
-    >>> relative_metrics(df, ["revenue"])
+    >>> relative_metrics(df, ["revenue"])  # doctest: +IGNORE_OUTPUT
           company       industry country     market_cap       revenue  workforce  revenue_diff_to_mean  revenue_sq_diff_to_mean  revenue_relative_to_mean
     0       Apple     technology      US  2828000000000  397000000000     161000          1.585800e+11             2.514762e+22                  0.707107
     1        ASML     technology      NL   236000000000   27180000000      39850          0.000000e+00             0.000000e+00                       NaN

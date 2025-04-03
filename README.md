@@ -78,7 +78,7 @@ Install Parfun directly from PyPI:
 
 ```bash
 pip install parfun
-pip install parfun[pandas,scaler,dask]  # with optional dependencies
+pip install "parfun[pandas,scaler,dask]"  # with optional dependencies
 ```
 
 The official documentation is available at [citi.github.io/parfun/](https://citi.github.io/parfun/).
