@@ -52,3 +52,8 @@ jobs:
                 PYTHONPATH=. python "$dir/main.py"
             fi
           done
+      - name: Test the documentation examples
+        run: |
+          pip install -r docs/requirements.txt
+          cd docs
+          make doctest

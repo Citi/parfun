@@ -41,7 +41,7 @@ backends, or to enable Pandas' support, use the `scaler`, `dask` and/or `scaler`
 
 .. code:: bash
 
-    pip install "parfun[dask,scaler,pandas]""
+    pip install "parfun[dask,scaler,pandas]"
 
 
 The library relies on a registered computing backend to schedule and distribute sub-tasks among a group of allocated
@@ -51,7 +51,7 @@ workers.
 with the :py:func:`~parfun.entry_point.set_parallel_backend` or within a Python context with
 :py:func:`~parfun.entry_point.set_parallel_backend_context`.
 
-.. code:: python
+.. testcode::
 
     from parfun.entry_point import set_parallel_backend, set_parallel_backend_context
 
@@ -62,7 +62,6 @@ with the :py:func:`~parfun.entry_point.set_parallel_backend` or within a Python 
     with set_parallel_backend_context("scaler_remote", scheduler_address="tcp://scaler.cluster:1243"):
         ... # Will run with parallel task over Scaler.
 
-
 See :py:func:`~parfun.entry_point.set_parallel_backend` for a description of the available backend options.
 
 
@@ -72,8 +71,7 @@ Your first parallel function
 Let's say that you have a computing intensive function that applies on a large dataframe, but that actually **does the
 computations separately for each country**:
 
-
-.. code-block:: python
+.. testcode::
 
     from typing import List
 
@@ -110,23 +108,24 @@ computations separately for each country**:
         "workforce": [161000, 39850, 650951, 240000, 104503]
     })
 
-    print(df)
-    #       company       industry country     market_cap       revenue  workforce
-    # 0       Apple     technology      US  2828000000000  397000000000     161000
-    # 1        ASML     technology      NL   236000000000   27180000000      39850
-    # 2  Volkswagen  manufacturing      DE    55550000000  312000000000     650951
-    # 3   Citigroup        banking      US    80310000000   79840000000     240000
-    # 4     Tencent  manufacturing      CN   345000000000   79000000000     104503
-    #           ...            ...     ...            ...           ...        ...
+.. doctest::
 
-    print(relative_metrics(df, ["market_cap", "revenue", "workforce"]))
-    #       company       industry country     market_cap       revenue  workforce  workforce_diff_to_mean  workforce_sq_diff_to_mean
-    # 0       Apple     technology      US  2828000000000            10     161000                   -3520               1.560250e+09  ...
-    # 1        ASML     technology      NL   236000000000   27180000000      39850                  -19710               2.372191e+00  ...
-    # 2  Volkswagen  manufacturing      DE    55550000000  312000000000     650951                   83091               9.291912e+00  ...
-    # 3   Citigroup        banking      US    80310000000            10     240000                   13200               1.560250e+09  ...
-    # 4     Tencent  manufacturing      CN   345000000000   79000000000     104503                   11201               0.127128e+00  ...
-    #           ...            ...     ...            ...           ...        ...
+    >>> df
+          company       industry country     market_cap       revenue  workforce
+    0       Apple     technology      US  2828000000000  397000000000     161000
+    1        ASML     technology      NL   236000000000   27180000000      39850
+    2  Volkswagen  manufacturing      DE    55550000000  312000000000     650951
+    3   Citigroup        banking      US    80310000000   79840000000     240000
+    4     Tencent  manufacturing      CN   345000000000   79000000000     104503
+
+    >>> relative_metrics(df, ["revenue"])
+          company       industry country     market_cap       revenue  workforce  revenue_diff_to_mean  revenue_sq_diff_to_mean  revenue_relative_to_mean
+    0       Apple     technology      US  2828000000000  397000000000     161000          1.585800e+11             2.514762e+22                  0.707107
+    1        ASML     technology      NL   236000000000   27180000000      39850          0.000000e+00             0.000000e+00                       NaN
+    2  Volkswagen  manufacturing      DE    55550000000  312000000000     650951          0.000000e+00             0.000000e+00                       NaN
+    3   Citigroup        banking      US    80310000000   79840000000     240000         -1.585800e+11             2.514762e+22                 -0.707107
+    4     Tencent  manufacturing      CN   345000000000   79000000000     104503          0.000000e+00             0.000000e+00                       NaN
+
 
 When executing the function on a large dataframe, **it takes a little bit more than 3.7 seconds to complete**:
 
@@ -156,15 +155,16 @@ The decorator requires the user to specify how to partition the input data (whic
 partitioned), and how to combine the resulting sub-results:
 
 
-.. code-block:: python
+.. testcode::
 
     from parfun import parfun
     from parfun.combine.dataframe import df_concat
     from parfun.partition.api import per_argument
     from parfun.partition.dataframe import df_by_group
 
+
     @parfun(
-        split=per_argument(df=df_by_group(by="country"))
+        split=per_argument(df=df_by_group(by="country")),
         combine_with=df_concat,
     )
     def relative_metrics(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
@@ -197,10 +197,8 @@ single argument. However, we could also use :py:func:`~parfun.partition.api.per_
 partitioning functions on various parameters:
 
 
-.. code-block:: python
+.. testcode::
 
-    from parfun import parfun
-    from parfun.partition.api import per_argument
     from parfun.partition.collection import list_by_chunk
     from parfun.partition.dataframe import df_by_row
 
@@ -211,7 +209,7 @@ partitioning functions on various parameters:
             df_1=df_by_row,
             df_2=df_by_row,
         ),
-        ...
+        combine_with=...,
     )
     def func(values: List, df_1: pd.DataFrame, df_2: pd.DataFrame):
         ...
@@ -234,15 +232,14 @@ Alternatively, it might be sometimes desired to run the same partitioning functi
 :py:func:`~parfun.partition.api.all_arguments`:
 
 
-.. code-block:: python
+.. testcode::
 
-    from parfun import parfun
     from parfun.partition.api import all_arguments
-    from parfun.partition.dataframe import df_by_row
+
 
     @parfun(
         split=all_arguments(df_by_group(by=["year", "month"])),
-        ...
+        combine_with=...,
     )
     def func(df_1: pd.DataFrame, df_2: pd.DataFrame):
         ...
@@ -253,8 +250,7 @@ Custom partition generators
 
 If you wish to implement more complex partitioning schemes, ``parfun`` allows the use of custom Python generators:
 
-
-.. code:: python
+.. testcode::
 
     from typing import Generator, Tuple
 
@@ -266,7 +262,7 @@ If you wish to implement more complex partitioning schemes, ``parfun`` allows th
 
     @parfun(
         split=all_arguments(partition_by_week),
-        ...
+        combine_with=...,
     )
     def func(df: pd.DataFrame):
         ...
@@ -292,32 +288,38 @@ The library tries to automatically determine the optimal size for the parallelly
 **You can override how the library choose the partition size to use by either providing either the**
 ``initial_partition_size: int`` **or** ``fixed_partition_size: int`` **parameter:**
 
-.. code:: python
+.. testcode::
 
     @parfun(
-        ...,
+        split=...,
+        combine_with=...,
         fixed_partition_size=10,  # The partition size will always be 10 rows/items.
-        ...
     )
+    def func(arg):
+        ...
+
 
     @parfun(
-        ...,
+        split=...,
+        combine_with=...,
         initial_partition_size=200,  # The library will use 200 as a first estimate then improve from it.
-        ...
     )
-
+    def func(arg):
+        ...
 
 These parameters also accept a callable instead of an ``int``. This is useful when the function's input is required to
 compute the partition size:
 
-.. code:: python
+
+.. testcode::
 
     @parfun(
-        ...
-        initial_partition_size=lambda df: df.shape[0] * 0.01,
-        ...
+        split=...,
+        combine_with=...,
+        initial_partition_size=lambda df: df.shape[0] * 0.01,  # partitions are 1% of the dataframe size
     )
-    def fun(df: pd.DataFrame)
+    def func(df: pd.DataFrame):
+        ...
 
 
 .. note::
@@ -335,7 +337,8 @@ The library provides useful combining functions to deal with collections and dat
 In addition, regular Python functions can be used as combine functions. These will be provided the results of the
 partitioned computations as an iterable and their result type should match the decorated function's return type.
 
-.. code:: python
+
+.. testcode::
 
     @parfun(
         split=all_arguments(list_by_chunk),
@@ -354,16 +357,22 @@ Parfun functions can be safely called from other Parfun functions.
 inner functions sequentially, as regular Python functions.
 
 
-.. code-block:: python
+.. testcode::
 
-    @parfun(split=per_argument(values=list_by_chunk), ...)
+    @parfun(
+        split=per_argument(values=list_by_chunk),
+        combine_with=...,
+    )
     def parent_func(values: List[float]):
         ...
         result = child_func(df)
         ...
 
 
-    @parfun(split=split(df_by_group(by=["year", "month"])), ...)
+    @parfun(
+        split=all_arguments(df_by_group(by=["year", "month"])),
+        combine_with=...,
+    )
     def child_func(df: pd.DataFrame):
         ...
 
@@ -378,12 +387,15 @@ In addition, **the decorator provides a** ``profile: bool`` **parameter** that c
 metrics when running the parallel function:
 
 
-.. code-block:: python
+.. testcode::
 
     @parfun(
-        ...,
+        split=...,
+        combine_with=...,
         profile=True,
     )
+    def func(arg):
+        ...
 
 
 Applying this to our previous function give us this:
@@ -445,9 +457,12 @@ The decorator also has a trace_export: ``Optional[str]`` parameter that will dum
 function to a CSV file. All durations in this file are in nanoseconds (10-9):
 
 
-.. code-block:: python
+.. testcode::
 
     @parfun(
-        ...,
+        split=...,
+        combine_with=...,
         trace_export="relative_metrics.trace_export.csv",
     )
+    def func(arg):
+        ...
