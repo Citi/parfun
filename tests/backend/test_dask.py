@@ -7,7 +7,6 @@ try:
 except ImportError:
     dask_available = False
 from parfun.backend.mixins import BackendEngine
-
 from tests.backend.mixins import BackendEngineTestCase
 from tests.backend.utility import warmup_workers
 

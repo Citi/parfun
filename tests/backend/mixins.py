@@ -10,7 +10,6 @@ from typing import Deque
 from parfun.backend.mixins import BackendEngine, ProfiledFuture
 from parfun.functions import parallel_map
 from parfun.profiler.functions import profile
-
 from tests.backend.utility import failure_task, nested_task, no_op_task, sleep
 
 

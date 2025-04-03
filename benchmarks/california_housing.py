@@ -7,14 +7,12 @@ Measure the training time when splitting the learning dataset process using Parf
 import argparse
 import json
 import timeit
-
 from typing import List
 
 import numpy as np
 import pandas as pd
-
-from sklearn.datasets import fetch_california_housing
 from sklearn.base import RegressorMixin
+from sklearn.datasets import fetch_california_housing
 from sklearn.tree import DecisionTreeRegressor
 
 from parfun.decorators import parfun
