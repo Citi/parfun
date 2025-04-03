@@ -22,7 +22,7 @@ Other tasks cannot easily be parallelized:
 
 * ✖ Computations that require non-partitionable datasets (e.g. median computation, sorting)
 * ✖ I/O intensive tasks (file loading, network communications)
-* ✖ Very short (< 100ms) tasks. These tasks are two small for the parallelism gains to exceed the system overhead
+* ✖ Very short (< 100ms) tasks. These tasks are too small for the parallelism gains to exceed the system overhead
   caused by our parallelization system (e.g. system communications and initialization).
 
 

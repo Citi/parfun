@@ -173,9 +173,9 @@ class ScalerLocalBackend(ScalerRemoteBackend):
 
     def __init__(
         self,
-        per_worker_queue_size: int = 1000,
         scheduler_address: Optional[str] = None,
         n_workers: int = psutil.cpu_count(logical=False) - 1,
+        per_worker_queue_size: int = 1000,
         allows_nested_tasks: bool = True,
         logging_paths: Tuple[str, ...] = ("/dev/stdout",),
         logging_level: str = "INFO",
