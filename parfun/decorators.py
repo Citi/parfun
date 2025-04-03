@@ -98,13 +98,14 @@ def parfun(
         # Renames the original function as "_{function_name}_sequential" and adds it to the same module.
         # This is required as Pickle requires all serialized functions to be accessible from a qualified module, which
         # will not be the case for the original function as it gets overridden by the decorator.
-        module = importlib.import_module(function.__module__)
-        name = f"_{function.__name__}_sequential"
-        parent_qualname, parent_separator, old_qualname = function.__qualname__.rpartition(".")
-        qualname = f"{parent_qualname}{parent_separator}_{old_qualname}_sequential"
-        setattr(module, name, function)
-        getattr(module, name).__name__ = name
-        getattr(module, name).__qualname__ = qualname
+        if function.__module__ is not None:
+            module = importlib.import_module(function.__module__)
+            name = f"_{function.__name__}_sequential"
+            parent_qualname, parent_separator, old_qualname = function.__qualname__.rpartition(".")
+            qualname = f"{parent_qualname}{parent_separator}_{old_qualname}_sequential"
+            setattr(module, name, function)
+            getattr(module, name).__name__ = name
+            getattr(module, name).__qualname__ = qualname
 
         return wrapped
 
