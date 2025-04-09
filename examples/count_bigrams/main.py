@@ -1,13 +1,15 @@
 """
-This example counts the most common two-letters sequences (bigrams) in the content of an URL.
+Counts the most common two-letters sequences (bigrams) in the content of an URL.
 
 Usage:
 
+    $ git clone https://github.com/Citi/parfun && cd parfun
     $ python -m examples.count_bigrams.main
 """
 
 import collections
 import psutil
+import ssl
 
 from typing import Counter, Iterable, List
 from urllib.request import urlopen
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     URL = "https://www.gutenberg.org/ebooks/100.txt.utf-8"
     TOP_K = 10
 
-    with urlopen(URL) as response:
+    with urlopen(URL, context=ssl._create_unverified_context()) as response:
         content = response.read().decode("utf-8").splitlines()
 
     with set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):

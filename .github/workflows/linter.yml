@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pyproject-flake8 mypy
           pip install -r requirements.txt
-          pip install pandas dask[distributed]
+          pip install pandas dask[distributed] scaler
       - name: Lint with flake8
         run: |
           pflake8 .
@@ -46,11 +46,9 @@ jobs:
           python -m unittest discover -v tests
       - name: Run the examples
         run: |
-          for dir in "./examples"/*; do
-            if [ -f "$dir/main.py" ]; then
-                echo "Running $dir/main.py"
-                PYTHONPATH=. python "$dir/main.py"
-            fi
+          find examples -type f -name '*.py' ! -name '__init__.py' | while read -r file; do
+            echo "Running $file"
+            PYTHONPATH=. python "$file"
           done
       - name: Test the documentation examples
         run: |

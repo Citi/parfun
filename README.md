@@ -62,9 +62,9 @@ if __name__ == "__main__":
 ## Features
 
 * **Provides significant speedups** to existing Python functions.
-* **Only requires basic understanding of parallel and distributed computing systems@**.
+* **Only requires basic understanding of parallel and distributed computing systems**.
 * **Automatically estimates the optimal sub-task splitting strategy** (the *partition size*).
-* **Automatically handles data transmission, caching and synchronization**.
+* **Automatically handles data transmission, caching, and synchronization**.
 * **Supports various distributed computing backends**:
     - Python's built-in [multiprocessing module](https://docs.python.org/3/library/multiprocessing.html).
     - [Scaler](https://github.com/citi/scaler).
@@ -94,12 +94,12 @@ pip install -r requirements.txt
 make html
 ```
 
-The documentation's main page can then ben found at `docs/build/html/index.html`.
+The documentation's main page can then be found at `docs/build/html/index.html`.
 
 
 ## Benchmarks
 
-**Parfun efficiently parallelizes short-duration functions**.
+**Parfun effectively parallelizes even short-duration functions**.
 
 When running a short 0.28-second ML function on an AMD Epyc 7313 16-Cores Processor, Parfun provides an impressive
 **7.4x speedup**. Source code for this experiment [here](examples/california_housing/main.py).

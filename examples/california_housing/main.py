@@ -1,8 +1,11 @@
 """
-This example trains a random tree regressor on the California housing dataset from scikit-learn.
+Trains a random tree regressor on the California housing dataset from scikit-learn.
 
-Measure the training time when splitting the learning dataset process using Parfun.
+Measures the training time when splitting the learning dataset process using Parfun.
 
+Usage:
+
+    $ git clone https://github.com/Citi/parfun && cd parfun
     $ python -m examples.california_housing.main
 """
 
