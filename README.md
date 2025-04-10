@@ -31,11 +31,15 @@ and distributed systems**.
 The main feature of the library is its `@parfun` decorator that transparently executes standard Python functions
 following the [map-reduce](https://en.wikipedia.org/wiki/MapReduce) pattern:
 
+
 ```Python
+from typing import List
+
 from parfun import parfun
 from parfun.combine.collection import list_concat
 from parfun.partition.api import per_argument
 from parfun.partition.collection import list_by_chunk
+
 
 @parfun(
     split=per_argument(
@@ -45,32 +49,42 @@ from parfun.partition.collection import list_by_chunk
 )
 def list_pow(values: List[float], factor: float) -> List[float]:
     return [v**factor for v in values]
+
+
+if __name__ == "__main__":
+    from parfun.entry_point import set_parallel_backend_context
+
+    with set_parallel_backend_context("local_multiprocessing"):  # use a local pool of processes
+        print(list_pow([1, 2, 3], 2))  # runs in parallel, prints [1, 4, 9]
 ```
 
 
 ## Features
 
-* **Provides significant speedups** to existing Python functions
-* **Does not require any deep knowledge of parallel or distributed computing systems**
-* **Automatically estimates the optimal sub-task splitting** (the *partition size*)
-* **Automatically handles data transmission, caching and synchronization**.
-* **Supports various distributed computing backends**, including Python's multiprocessing,
-  [Scaler](https://github.com/citi/scaler) or Dask.
-
-
-## Benchmarks
-
-**Parfun efficiently parallelizes short-duration functions**.
-
-When running a short 0.28-second ML function on an AMD Epyc 7313 16-Cores Processor, Parfun provides an impressive
-**7.4x speedup**. Source code for this experiment [here](benchmarks/california_housing.py).
-
-![Benchmark Results](benchmarks/california_housing_results.svg)
+* **Provides significant speedups** to existing Python functions.
+* **Only requires basic understanding of parallel and distributed computing systems**.
+* **Automatically estimates the optimal sub-task splitting strategy** (the *partition size*).
+* **Automatically handles data transmission, caching, and synchronization**.
+* **Supports various distributed computing backends**:
+    - Python's built-in [multiprocessing module](https://docs.python.org/3/library/multiprocessing.html).
+    - [Scaler](https://github.com/citi/scaler).
+    - [Dask](https://www.dask.org/).
 
 
 ## Quick Start
 
-The official documentation is availaible at [citi.github.io/parfun/](https://citi.github.io/parfun/).
+
+Install Parfun directly from PyPI:
+
+```bash
+pip install parfun
+pip install "parfun[pandas,scaler,dask]"  # with optional dependencies
+```
+
+The official documentation is available at [citi.github.io/parfun/](https://citi.github.io/parfun/).
+
+Take a look at our documentation's [quickstart tutorial](https://citi.github.io/parfun/tutorials/quickstart.html) to get
+more examples and a deeper overview of the library.
 
 Alternatively, you can build the HTML documentation from the source code:
 
@@ -80,10 +94,17 @@ pip install -r requirements.txt
 make html
 ```
 
-The documentation's main page can then ben found at `docs/build/html/index.html`.
+The documentation's main page can then be found at `docs/build/html/index.html`.
 
-Take a look at our documentation's [quickstart tutorial](https://citi.github.io/parfun/tutorials/quickstart.html) to get
-more examples and a deeper overview of the library.
+
+## Benchmarks
+
+**Parfun effectively parallelizes even short-duration functions**.
+
+When running a short 0.28-second ML function on an AMD Epyc 7313 16-Cores Processor, Parfun provides an impressive
+**7.4x speedup**. Source code for this experiment [here](examples/california_housing/main.py).
+
+![Benchmark Results](images/benchmark_results.svg)
 
 
 ## Contributing

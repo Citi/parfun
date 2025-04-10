@@ -16,7 +16,6 @@ import psutil
 
 from parfun.backend.mixins import BackendEngine, BackendSession
 from parfun.backend.profiled_future import ProfiledFuture
-from parfun.backend.utility import get_available_tcp_port
 from parfun.profiler.functions import profile
 
 
@@ -129,14 +128,10 @@ class ScalerRemoteBackend(BackendEngine):
         allows_nested_tasks: bool = True,
         **client_kwargs,
     ):
-        self.__setstate__(
-            {
-                "scheduler_address": scheduler_address,
-                "n_workers": n_workers,
-                "allows_nested_tasks": allows_nested_tasks,
-                "client_kwargs": client_kwargs,
-            }
-        )
+        self._scheduler_address = scheduler_address
+        self._n_workers = n_workers
+        self._allows_nested_tasks = allows_nested_tasks
+        self._client_kwargs = client_kwargs
 
     def __getstate__(self) -> dict:
         return {
@@ -173,9 +168,9 @@ class ScalerLocalBackend(ScalerRemoteBackend):
 
     def __init__(
         self,
-        per_worker_queue_size: int,
         scheduler_address: Optional[str] = None,
         n_workers: int = psutil.cpu_count(logical=False) - 1,
+        per_worker_queue_size: int = 1000,
         allows_nested_tasks: bool = True,
         logging_paths: Tuple[str, ...] = ("/dev/stdout",),
         logging_level: str = "INFO",
@@ -187,19 +182,7 @@ class ScalerLocalBackend(ScalerRemoteBackend):
         local host on an available TCP port.
         """
 
-        if scheduler_address is None:
-            scheduler_port = get_available_tcp_port()
-            scheduler_address = f"tcp://127.0.0.1:{scheduler_port}"
-
         client_kwargs = self.__get_constructor_arg_names(Client)
-
-        super().__init__(
-            scheduler_address=scheduler_address,
-            allows_nested_tasks=allows_nested_tasks,
-            n_workers=n_workers,
-            **{kwarg: value for kwarg, value in kwargs.items() if kwarg in client_kwargs},
-        )
-
         scheduler_cluster_combo_kwargs = self.__get_constructor_arg_names(SchedulerClusterCombo)
 
         self._cluster = SchedulerClusterCombo(
@@ -210,6 +193,14 @@ class ScalerLocalBackend(ScalerRemoteBackend):
             logging_config_file=logging_config_file,
             per_worker_queue_size=per_worker_queue_size,
             **{kwarg: value for kwarg, value in kwargs.items() if kwarg in scheduler_cluster_combo_kwargs},
+        )
+        scheduler_address = self._cluster.get_address()
+
+        super().__init__(
+            scheduler_address=scheduler_address,
+            allows_nested_tasks=allows_nested_tasks,
+            n_workers=n_workers,
+            **{kwarg: value for kwarg, value in kwargs.items() if kwarg in client_kwargs},
         )
 
     def __setstate__(self, state: dict) -> None:
