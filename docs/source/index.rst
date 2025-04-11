@@ -1,12 +1,15 @@
 Welcome to Parfun's documentation!
-================================================
+==================================
 
-**Parfun** is a lightweight and user-friendly Python library to assist users in running a Python function in
-parallel.
+**Parfun** is a lightweight and user-friendly Python library designed to help users run Python functions in parallel
+with ease.
 
-With limited knowledge of parallelism and distributed systems, users can significantly speedup their Python code.
+Even with minimal knowledge of parallelism or distributed systems, users can significantly speed up their Python code
+using Parfun.
 
-Parfun supports multiple execution backend, including Python's built-in multiprocessing, Dask and Scaler.
+Parfun supports multiple execution backends, including Python's built-in
+`multiprocessing <https://docs.python.org/3/library/multiprocessing.html>`_, as well as
+`Scaler <https://github.com/Citi/scaler>`_ and `Dask <https://www.dask.org/>`_.
 
 
 Content
