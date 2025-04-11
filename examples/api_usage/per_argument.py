@@ -11,18 +11,15 @@ from typing import List
 
 import pandas as pd
 
-from parfun import parallel, per_argument, set_parallel_backend_context
-from parfun.combine.dataframe import df_concat
-from parfun.partition.collection import list_by_chunk
-from parfun.partition.dataframe import df_by_row
+import parfun as pf
 
 
-@parallel(
-    split=per_argument(
-        factors=list_by_chunk,
-        dataframe=df_by_row,
+@pf.parallel(
+    split=pf.per_argument(
+        factors=pf.collection.by_chunk,
+        dataframe=pf.dataframe.by_row,
     ),
-    combine_with=df_concat,
+    combine_with=pf.dataframe.concat,
 )
 def multiply_by_row(factors: List[int], dataframe: pd.DataFrame) -> pd.DataFrame:
     assert len(factors) == len(dataframe)
@@ -37,7 +34,7 @@ if __name__ == "__main__":
 
     factors = [10, 20, 30]
 
-    with set_parallel_backend_context("local_multiprocessing"):
+    with pf.set_parallel_backend_context("local_multiprocessing"):
         result = multiply_by_row(factors, dataframe)
 
     print(result)

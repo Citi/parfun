@@ -18,7 +18,7 @@ Content
    tutorials/quickstart
    tutorials/examples
    tutorials/implementation_details
-   api/index
+   api
 
 
 Indices and tables

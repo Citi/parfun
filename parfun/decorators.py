@@ -29,11 +29,11 @@ def parallel(
 
     .. code:: python
 
-        @parallel(
-            split=per_argument(
-                values=lists_by_chunk,
+        @pf.parallel(
+            split=pf.per_argument(
+                values=pf.collection.by_chunk,
             ),
-            combine_with=lists_concat
+            combine_with=pf.collection.concat
         )
         def multiply_by_constant(values: Iterable[int], constant: int):
             return [v * constant for v in values]
@@ -41,7 +41,7 @@ def parallel(
         # This would be functionally equivalent to running the function inside a single for loop:
 
         results = []
-        for partition in lists_by_chunk(values):
+        for partition in pf.collection.by_chunk(values):
             results.append(multiply_by_constant(partition, constant))
 
         return combine_with(results)

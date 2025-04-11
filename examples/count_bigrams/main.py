@@ -14,17 +14,16 @@ import ssl
 from typing import Counter, Iterable, List
 from urllib.request import urlopen
 
-from parfun import parallel, per_argument, set_parallel_backend_context
-from parfun.partition.collection import list_by_chunk
+import parfun as pf
 
 
 def sum_counters(counters: Iterable[Counter[str]]) -> Counter[str]:
     return sum(counters, start=collections.Counter())
 
 
-@parallel(
-    split=per_argument(
-        lines=list_by_chunk
+@pf.parallel(
+    split=pf.per_argument(
+        lines=pf.collection.by_chunk
     ),
     combine_with=sum_counters,
 )
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     with urlopen(URL, context=ssl._create_unverified_context()) as response:
         content = response.read().decode("utf-8").splitlines()
 
-    with set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):
+    with pf.set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):
         counts = count_bigrams(content)
 
     print(f"Top {TOP_K} words:")

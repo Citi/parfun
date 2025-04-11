@@ -11,7 +11,7 @@ from typing import Generator, Iterable, Tuple
 
 import pandas as pd
 
-from parfun import all_arguments, parallel, set_parallel_backend_context
+import parfun as pf
 
 
 def partition_by_day_of_week(dataframe: pd.DataFrame) -> Generator[Tuple[pd.DataFrame], None, None]:
@@ -26,8 +26,8 @@ def combine_results(dataframes: Iterable[pd.DataFrame]) -> pd.DataFrame:
     return pd.concat(dataframes).sort_values(by="datetime")
 
 
-@parallel(
-    split=all_arguments(partition_by_day_of_week),
+@pf.parallel(
+    split=pf.all_arguments(partition_by_day_of_week),
     combine_with=combine_results,
 )
 def daily_mean(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         ]
     })
 
-    with set_parallel_backend_context("local_multiprocessing"):
+    with pf.set_parallel_backend_context("local_multiprocessing"):
         result = daily_mean(dataframe)
 
     print(result)

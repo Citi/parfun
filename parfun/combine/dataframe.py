@@ -1,33 +1,13 @@
-"""
-A collection of pre-define APIs to help users combine Pandas' Dataframe data
-"""
+import warnings
 
-from typing import Iterable
-
-try:
-    import pandas as pd
-except ImportError:
-    raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
+from parfun.dataframe import concat
 
 
-def df_concat(dfs: Iterable[pd.DataFrame]) -> pd.DataFrame:
-    """
-    Similar to :py:func:`pandas.concat`.
+warnings.warn(
+    "parfun.combine.dataframe is deprecated and will be removed in a future version, use parfun.dataframe.",
+    DeprecationWarning
+)
 
-    .. code:: python
+df_concat = concat
 
-        df_1 = pd.DataFrame([1,2,3])
-        df_2 = pd.DataFrame([4,5,6])
-
-        print(df_concat([df_1, df_2]))
-        #    0
-        # 0  1
-        # 1  2
-        # 2  3
-        # 3  4
-        # 4  5
-        # 5  6
-
-    """
-
-    return pd.concat(dfs, ignore_index=True)
+__all__ = ["df_concat"]

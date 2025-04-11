@@ -1,13 +1,12 @@
 import unittest
 
-from parfun.entry_point import set_parallel_backend
+import parfun as pf
 from parfun.kernel.parallel_function import ParallelFunction
-from parfun.partition.api import all_arguments, per_argument
 
 
 class TestParallelFunction(unittest.TestCase):
     def setUp(self) -> None:
-        set_parallel_backend("local_multiprocessing")
+        pf.set_parallel_backend("local_multiprocessing")
 
     def test_validate_signature(self):
         # These are valid:
@@ -15,14 +14,14 @@ class TestParallelFunction(unittest.TestCase):
         ParallelFunction(
             function=lambda x, y: x + y,  # type: ignore[misc, arg-type]
             function_name="lambda",
-            split=per_argument(x=lambda x: [(x,)]),  # type: ignore[arg-type, return-value]
+            split=pf.per_argument(x=lambda x: [(x,)]),  # type: ignore[arg-type, return-value]
             combine_with=sum,
         )
 
         ParallelFunction(
             function=lambda *args, **kwargs: tuple(),  # type: ignore[misc, arg-type]
             function_name="lambda",
-            split=all_arguments(lambda x, y: [(x, y)]),  # type: ignore[arg-type, return-value]
+            split=pf.all_arguments(lambda x, y: [(x, y)]),  # type: ignore[arg-type, return-value]
             combine_with=sum,
         )
 

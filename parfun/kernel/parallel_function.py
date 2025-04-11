@@ -7,7 +7,7 @@ import attrs
 
 from parfun.backend.mixins import BackendEngine
 from parfun.entry_point import get_parallel_backend, set_parallel_backend_context
-from parfun.functions import parallel_timed_map
+from parfun.kernel.functions import parallel_timed_map
 from parfun.kernel.function_signature import FunctionSignature, NamedArguments
 from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
 from parfun.partition.object import PartitionGenerator
@@ -21,7 +21,7 @@ from parfun.profiler.object import PartitionedTaskTrace
 class ParallelFunction:
     """Wraps a function so that it executes in parallel using a map-reduce/scatter-gather approach.
 
-    See the `@parfun()` decorator for a more user-friendly interface.
+    See the `@parallel()` decorator for a more user-friendly interface.
     """
 
     function: Callable[[FunctionInputType], FunctionOutputType] = attrs.field()

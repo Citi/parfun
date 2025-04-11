@@ -1,8 +1,8 @@
 import time
 import unittest
 
-from parfun.entry_point import get_parallel_backend, set_parallel_backend
-from parfun.functions import parallel_map, parallel_starmap, parallel_timed_map
+import parfun as pf
+from parfun.kernel.functions import parallel_map, parallel_starmap, parallel_timed_map
 from tests.backend.utility import warmup_workers
 
 DELAY = 50_000_000  # 50 ms
@@ -25,9 +25,9 @@ class TestFunctions(unittest.TestCase):
     N_WORKERS = 4
 
     def setUp(self) -> None:
-        set_parallel_backend("local_multiprocessing", max_workers=TestFunctions.N_WORKERS)
+        pf.set_parallel_backend("local_multiprocessing", max_workers=TestFunctions.N_WORKERS)
 
-        warmup_workers(get_parallel_backend(), TestFunctions.N_WORKERS)
+        warmup_workers(pf.get_parallel_backend(), TestFunctions.N_WORKERS)
 
     def test_parallel_timed_map(self):
         N = 10
@@ -47,7 +47,7 @@ class TestFunctions(unittest.TestCase):
 
         N = 10
 
-        set_parallel_backend("local_single_process")
+        pf.set_parallel_backend("local_single_process")
 
         previous_task = None
 
