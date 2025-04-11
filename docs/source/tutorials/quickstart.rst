@@ -75,7 +75,7 @@ In this example, the :py:func:`~parfun.decorators.parfun` **decorator** is confi
 
 .. literalinclude:: ../../../examples/portfolio_metrics/main.py
     :language: python
-    :start-at: @parfun
+    :start-at: @parallel
     :end-at: def relative_metrics
 
 First, we tell the parallel engine how to partition the data with the ``split`` parameter. Note that we can safely
@@ -105,7 +105,7 @@ tasks**. It's important to specify a partitioning strategy that leverage this.
 Partitioning functions
 ----------------------
 
-As seen in the example here-above, the ``@parfun`` decorator accepts a partitioning function (``split``).
+As seen in the example above, the ``@parallel`` decorator accepts a partitioning function (``split``).
 
 Parfun provides an :doc:`extensive set of partitioning function and helpers</api/partition>`.
 
@@ -141,7 +141,7 @@ Alternatively, it might be sometimes desired to run the same partitioning functi
 Combining functions
 -------------------
 
-In addition to the partitioning function, the ``@parfun`` decorator requires a combining function (``combine_with``).
+In addition to the partitioning function, the ``@parallel`` decorator requires a combining function (``combine_with``).
 
 The library provides useful combining functions to deal with collections and dataframes:
 

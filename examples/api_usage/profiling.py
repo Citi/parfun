@@ -10,13 +10,11 @@ Usage:
 from typing import List
 import random
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
+from parfun import all_arguments, parallel, set_parallel_backend_context
 from parfun.partition.collection import list_by_chunk
 
 
-@parfun(
+@parallel(
     split=all_arguments(list_by_chunk),
     combine_with=sum,
     profile=True,

@@ -28,20 +28,19 @@
 Parfun is a lightweight library providing helpers to **make it easy to write and run a Python function in parallel
 and distributed systems**.
 
-The main feature of the library is its `@parfun` decorator that transparently executes standard Python functions
+The main feature of the library is its `@parallel` decorator that transparently executes standard Python functions
 following the [map-reduce](https://en.wikipedia.org/wiki/MapReduce) pattern:
 
 
 ```Python
 from typing import List
 
-from parfun import parfun
+from parfun import parfun, per_argument
 from parfun.combine.collection import list_concat
-from parfun.partition.api import per_argument
 from parfun.partition.collection import list_by_chunk
 
 
-@parfun(
+@parallel(
     split=per_argument(
         values=list_by_chunk
     ),

@@ -11,14 +11,12 @@ import pprint
 import random
 from typing import List
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
+from parfun import all_arguments, parallel, set_parallel_backend_context
 from parfun.partition.collection import list_by_chunk
 from parfun.combine.collection import list_concat
 
 
-@parfun(
+@parallel(
     split=all_arguments(list_by_chunk),
     combine_with=list_concat,
 )
@@ -27,7 +25,7 @@ def add_vectors(vec_a: List, vec_b: List) -> List:
     return [a + b for a, b in zip(vec_a, vec_b)]
 
 
-@parfun(
+@parallel(
     split=all_arguments(list_by_chunk),
     combine_with=list_concat,
 )

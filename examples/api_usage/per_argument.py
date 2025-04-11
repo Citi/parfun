@@ -11,16 +11,13 @@ from typing import List
 
 import pandas as pd
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-
-from parfun.partition.api import per_argument
+from parfun import parallel, per_argument, set_parallel_backend_context
 from parfun.combine.dataframe import df_concat
 from parfun.partition.collection import list_by_chunk
 from parfun.partition.dataframe import df_by_row
 
 
-@parfun(
+@parallel(
     split=per_argument(
         factors=list_by_chunk,
         dataframe=df_by_row,

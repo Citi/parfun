@@ -11,9 +11,7 @@ from typing import Generator, Iterable, Tuple
 
 import pandas as pd
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
+from parfun import all_arguments, parallel, set_parallel_backend_context
 
 
 def partition_by_day_of_week(dataframe: pd.DataFrame) -> Generator[Tuple[pd.DataFrame], None, None]:
@@ -28,7 +26,7 @@ def combine_results(dataframes: Iterable[pd.DataFrame]) -> pd.DataFrame:
     return pd.concat(dataframes).sort_values(by="datetime")
 
 
-@parfun(
+@parallel(
     split=all_arguments(partition_by_day_of_week),
     combine_with=combine_results,
 )

@@ -21,9 +21,7 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.base import RegressorMixin
 from sklearn.tree import DecisionTreeRegressor
 
-from parfun.decorators import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import per_argument
+from parfun import parallel, per_argument, set_parallel_backend_context
 from parfun.partition.dataframe import df_by_row
 
 
@@ -36,7 +34,10 @@ class MeanRegressor(RegressorMixin):
         return np.mean([regressor.predict(X) for regressor in self._regressors])
 
 
-@parfun(split=per_argument(dataframe=df_by_row), combine_with=lambda regressors: MeanRegressor(list(regressors)))
+@parallel(
+    split=per_argument(dataframe=df_by_row),
+    combine_with=lambda regressors: MeanRegressor(list(regressors))
+)
 def train_regressor(dataframe: pd.DataFrame, feature_names: List[str], target_name: str) -> RegressorMixin:
 
     regressor = DecisionTreeRegressor()

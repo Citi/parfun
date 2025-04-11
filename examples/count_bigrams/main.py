@@ -14,9 +14,7 @@ import ssl
 from typing import Counter, Iterable, List
 from urllib.request import urlopen
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import per_argument
+from parfun import parallel, per_argument, set_parallel_backend_context
 from parfun.partition.collection import list_by_chunk
 
 
@@ -24,7 +22,7 @@ def sum_counters(counters: Iterable[Counter[str]]) -> Counter[str]:
     return sum(counters, start=collections.Counter())
 
 
-@parfun(
+@parallel(
     split=per_argument(
         lines=list_by_chunk
     ),

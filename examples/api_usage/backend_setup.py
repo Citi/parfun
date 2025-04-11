@@ -7,7 +7,7 @@ Usage:
     $ python -m examples.api_usage.backend_setup
 """
 
-from parfun.entry_point import set_parallel_backend, set_parallel_backend_context
+from parfun import set_parallel_backend, set_parallel_backend_context
 
 
 if __name__ == "__main__":

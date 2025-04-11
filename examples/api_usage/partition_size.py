@@ -10,14 +10,12 @@ Usage:
 import numpy as np
 import pandas as pd
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
+from parfun import all_arguments, parallel, set_parallel_backend_context
 from parfun.partition.dataframe import df_by_row
 
 
 # With `fixed_partition_size`, the input dataframe will always be split in chunks of 1000 rows.
-@parfun(
+@parallel(
     split=all_arguments(df_by_row),
     combine_with=sum,
     fixed_partition_size=1000,
@@ -28,7 +26,7 @@ def fixed_partition_size_sum(dataframe: pd.DataFrame) -> float:
 
 # With `initial_partition_size`, the input dataframe will be split in chunks of 1000 rows until Parfun's
 # machine-learning algorithm find a better estimate.
-@parfun(
+@parallel(
     split=all_arguments(df_by_row),
     combine_with=sum,
     initial_partition_size=1000,
@@ -39,7 +37,7 @@ def initial_partition_size_sum(dataframe: pd.DataFrame) -> float:
 
 # Both `fixed_partition_size` and `initial_partition_size` can accept a callable instead of an integer value. This
 # allows for partition sizes to be computed based on the input parameters.
-@parfun(
+@parallel(
     split=all_arguments(df_by_row),
     combine_with=sum,
     initial_partition_size=lambda dataframe: max(10, len(dataframe) // 4),

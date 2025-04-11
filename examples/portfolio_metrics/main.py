@@ -11,14 +11,12 @@ from typing import List
 
 import pandas as pd
 
-from parfun import parfun
+from parfun import parallel, per_argument, set_parallel_backend_context
 from parfun.combine.dataframe import df_concat
-from parfun.partition.api import per_argument
 from parfun.partition.dataframe import df_by_group
-from parfun.entry_point import set_parallel_backend_context
 
 
-@parfun(
+@parallel(
     split=per_argument(portfolio=df_by_group(by="country")),
     combine_with=df_concat,
 )

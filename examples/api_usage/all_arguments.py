@@ -9,14 +9,12 @@ Usage:
 
 import pandas as pd
 
-from parfun import parfun
+from parfun import all_arguments, parallel, set_parallel_backend_context
 from parfun.combine.dataframe import df_concat
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
 from parfun.partition.dataframe import df_by_group
 
 
-@parfun(
+@parallel(
     split=all_arguments(df_by_group(by=["year", "month"])),
     combine_with=df_concat,
 )
