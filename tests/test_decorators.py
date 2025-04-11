@@ -10,18 +10,8 @@ try:
 except ImportError:
     raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parfun.combine.collection import list_concat
-from parfun.combine.dataframe import df_concat
-from parfun.decorators import parfun
-from parfun.entry_point import (
-    BACKEND_REGISTRY,
-    get_parallel_backend,
-    set_parallel_backend,
-    set_parallel_backend_context,
-)
-from parfun.partition.api import multiple_arguments, per_argument
-from parfun.partition.collection import list_by_chunk
-from parfun.partition.dataframe import df_by_row
+import parfun as pf
+from parfun.entry_point import BACKEND_REGISTRY
 from parfun.partition.object import PartitionGenerator
 from tests.backend.utility import warmup_workers
 from tests.test_helpers import find_nth_prime, random_df
@@ -33,8 +23,8 @@ class TestDecorators(unittest.TestCase):
     N_WORKERS = 4
 
     def setUp(self) -> None:
-        set_parallel_backend("local_multiprocessing", max_workers=TestDecorators.N_WORKERS)
-        warmup_workers(get_parallel_backend(), TestDecorators.N_WORKERS)
+        pf.set_parallel_backend("local_multiprocessing", max_workers=TestDecorators.N_WORKERS)
+        warmup_workers(pf.get_parallel_backend(), TestDecorators.N_WORKERS)
 
     def test_parallel(self):
         """Makes sure the decorator provides some speedup on CPU intensive computations."""
@@ -115,10 +105,10 @@ class TestDecorators(unittest.TestCase):
 
         INPUT_DATA = list(range(0, PARENT_INPUT_SIZE))
 
-        with set_parallel_backend_context("local_multiprocessing", max_workers=2):
+        with pf.set_parallel_backend_context("local_multiprocessing", max_workers=2):
             # When the backend does not support nested tasks, the child tasks should execute on the same process.
 
-            self.assertFalse(get_parallel_backend().allows_nested_tasks())
+            self.assertFalse(pf.get_parallel_backend().allows_nested_tasks())
 
             pids = _nested_parent_function(INPUT_DATA, CHILD_INPUT_SIZE)
 
@@ -127,10 +117,10 @@ class TestDecorators(unittest.TestCase):
             for parent_pid, child_pid in pids:
                 self.assertEqual(parent_pid, child_pid)
 
-        with set_parallel_backend_context("scaler_local", n_workers=2, per_worker_queue_size=10):
+        with pf.set_parallel_backend_context("scaler_local", n_workers=2, per_worker_queue_size=10):
             # When the backend supports nested tasks, the child tasks should execute on different processes.
 
-            self.assertTrue(get_parallel_backend().allows_nested_tasks())
+            self.assertTrue(pf.get_parallel_backend().allows_nested_tasks())
 
             pids = _nested_parent_function(INPUT_DATA, CHILD_INPUT_SIZE)
 
@@ -168,7 +158,11 @@ class TestDecorators(unittest.TestCase):
         self.assertTrue(sequential.equals(parallel))
 
 
-@parfun(split=multiple_arguments(("col1", "col2", "col3"), list_by_chunk), combine_with=sum, fixed_partition_size=100)
+@pf.parallel(
+    split=pf.multiple_arguments(("col1", "col2", "col3"), pf.collection.by_chunk),
+    combine_with=sum,
+    fixed_partition_size=100
+)
 def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[int], constant: int) -> int:
     result = 0
     for i in zip(col1, col2, col3):
@@ -177,12 +171,18 @@ def _sum_horizontally(col1: Iterable[int], col2: Iterable[int], col3: Iterable[i
     return result
 
 
-@parfun(split=per_argument(values=df_by_row), combine_with=df_concat)
+@pf.parallel(
+    split=pf.per_argument(values=pf.dataframe.by_row),
+    combine_with=pf.dataframe.concat
+)
 def _find_all_nth_primes(values: pd.DataFrame) -> pd.DataFrame:
     return values.apply(lambda series: series.apply(find_nth_prime))
 
 
-@parfun(split=multiple_arguments(("a", "b"), list_by_chunk), combine_with=df_concat)
+@pf.parallel(
+    split=pf.multiple_arguments(("a", "b"), pf.collection.by_chunk),
+    combine_with=pf.dataframe.concat
+)
 def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) -> pd.DataFrame:
     list_of_df = []
     for i, j in zip(a, b):
@@ -210,7 +210,10 @@ def _delayed_combine(values: Iterable[float]) -> float:
     return result
 
 
-@parfun(split=per_argument(values=_delayed_partition), combine_with=_delayed_combine)
+@pf.parallel(
+    split=pf.per_argument(values=_delayed_partition),
+    combine_with=_delayed_combine
+)
 def _delayed_sum(values: Iterable[float]) -> float:
     logging.debug("start delayed sum")
     result = sum(values)
@@ -218,28 +221,35 @@ def _delayed_sum(values: Iterable[float]) -> float:
     return result
 
 
-@parfun(split=per_argument(values=list_by_chunk), combine_with=list_concat)
+@pf.parallel(
+    split=pf.per_argument(values=pf.collection.by_chunk),
+    combine_with=pf.collection.concat
+)
 def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tuple[int, int]]:
     parent_pid = os.getpid()
     child_input = [parent_pid for _ in range(0, child_input_size)]
 
-    return list_concat(_nested_child_function(child_input) for _ in values)
+    return pf.collection.concat(_nested_child_function(child_input) for _ in values)
 
 
-@parfun(split=per_argument(parent_pids=list_by_chunk), combine_with=list_concat)
+@pf.parallel(split=pf.per_argument(parent_pids=pf.collection.by_chunk), combine_with=pf.collection.concat)
 def _nested_child_function(parent_pids: List[int]) -> List[Tuple[int, int]]:
     child_pid = os.getpid()
     return [(parent_pid, child_pid) for parent_pid in parent_pids]
 
 
-@parfun(split=per_argument(values=list_by_chunk), combine_with=list_concat, fixed_partition_size=10)
+@pf.parallel(
+    split=pf.per_argument(values=pf.collection.by_chunk),
+    combine_with=pf.collection.concat,
+    fixed_partition_size=10
+)
 def _fixed_partition_size(values: List) -> List:
     if len(values) != 10:
         raise ValueError("invalid fixed partition size.")
     return values
 
 
-@parfun(split=per_argument(a=list_by_chunk, b=df_by_row), combine_with=df_concat)
+@pf.parallel(split=pf.per_argument(a=pf.collection.by_chunk, b=pf.dataframe.by_row), combine_with=pf.dataframe.concat)
 def _per_argument_sum(a: List, b: pd.DataFrame) -> pd.DataFrame:
     """Multiples the dataframe values by the corresponding list items."""
 

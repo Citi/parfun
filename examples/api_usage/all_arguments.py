@@ -9,20 +9,15 @@ Usage:
 
 import pandas as pd
 
-from parfun import parfun
-from parfun.combine.dataframe import df_concat
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
-from parfun.partition.dataframe import df_by_group
+import parfun as pf
 
 
-@parfun(
-    split=all_arguments(df_by_group(by=["year", "month"])),
-    combine_with=df_concat,
+@pf.parallel(
+    split=pf.all_arguments(pf.dataframe.by_group(by=["year", "month"])),
+    combine_with=pf.dataframe.concat,
 )
 def monthly_sum(sales: pd.DataFrame, costs: pd.DataFrame) -> pd.DataFrame:
     merged = pd.merge(sales, costs, on=["year", "month", "day"], how="outer")
-
     # Group and sum by day
     grouped = merged.groupby(["year", "month", "day"], as_index=False).sum(numeric_only=True)
 
@@ -44,7 +39,7 @@ if __name__ == "__main__":
         "costs": [50, 70, 80]
     })
 
-    with set_parallel_backend_context("local_multiprocessing"):
+    with pf.set_parallel_backend_context("local_multiprocessing"):
         result = monthly_sum(sales, costs)
 
     print(result)

@@ -21,10 +21,7 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.base import RegressorMixin
 from sklearn.tree import DecisionTreeRegressor
 
-from parfun.decorators import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import per_argument
-from parfun.partition.dataframe import df_by_row
+import parfun as pf
 
 
 class MeanRegressor(RegressorMixin):
@@ -36,7 +33,10 @@ class MeanRegressor(RegressorMixin):
         return np.mean([regressor.predict(X) for regressor in self._regressors])
 
 
-@parfun(split=per_argument(dataframe=df_by_row), combine_with=lambda regressors: MeanRegressor(list(regressors)))
+@pf.parallel(
+    split=pf.per_argument(dataframe=pf.dataframe.by_row),
+    combine_with=lambda regressors: MeanRegressor(list(regressors))
+)
 def train_regressor(dataframe: pd.DataFrame, feature_names: List[str], target_name: str) -> RegressorMixin:
 
     regressor = DecisionTreeRegressor()
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     N_MEASURES = 5
 
-    with set_parallel_backend_context("local_single_process"):
+    with pf.set_parallel_backend_context("local_single_process"):
         regressor = train_regressor(dataframe, feature_names, target_name)
 
         duration = (
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
         print("Sequential training duration:", duration)
 
-    with set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):
+    with pf.set_parallel_backend_context("local_multiprocessing", max_workers=N_WORKERS):
         regressor = train_regressor(dataframe, feature_names, target_name)
 
         duration = (

@@ -1,20 +1,13 @@
-"""
-A collection of pre-define APIs to help users combine collection data, like list, array, tuple
-"""
+import warnings
 
-from itertools import chain
-from typing import Iterable, List, TypeVar
-
-ListValue = TypeVar("ListValue")
+from parfun.collection import concat
 
 
-def list_concat(values: Iterable[List[ListValue]]) -> List[ListValue]:
-    """
-    Chains a collection of lists in a single list.
+warnings.warn(
+    "parfun.combine.collection is deprecated and will be removed in a future version, use parfun.collection.",
+    DeprecationWarning
+)
 
-    .. code:: python
+list_concat = concat
 
-        list_concat([[1,2], [3], [4, 5]]) # [1, 2, 3, 4, 5]
-
-    """
-    return list(chain.from_iterable(values))
+__all__ = ["list_concat"]

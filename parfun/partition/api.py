@@ -11,15 +11,14 @@ def per_argument(
     **partition_arg_with: PartitionFunction,
 ) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
     """
-    Applies multiple partitioning functions simultaneously on different function arguments, similarly to Python's
-    :py:func:`zip`.
+    Applies multiple partitioning functions simultaneously on different function arguments.
 
     .. code:: python
 
-        @parfun(
-            split=per_argument(
-                df=df_by_row,
-                xs=list_by_chunk,
+        @pf.parallel(
+            split=pf.per_argument(
+                df=pf.dataframe.by_row,
+                xs=pf.collection.by_chunk,
             )
         )
         def func(df: pd.DataFrame, xs: List, constant: int):
@@ -56,15 +55,16 @@ def multiple_arguments(
     partition_on: Union[Tuple[str, ...], str], partition_with: PartitionFunction
 ) -> Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]]:
     """
-    Applies a single partitioning function to multiple arguments.
+    Applies a single partitioning function to multiple, but not all, arguments.
 
     .. code:: python
 
-        @parfun(
-            split=multiple_arguments(
+        @pf.parallel(
+            split=pf.multiple_arguments(
                 ("df_1", "df_2"),
-                df_by_group(by=["year", "month"]),
-            )
+                pf.dataframe.by_group(by=["year", "month"]),
+            ),
+            ...
         )
         def func(df_1: pd.DataFrame, df_2: pd.DataFrame, constant: int):
             ...
@@ -106,8 +106,9 @@ def all_arguments(
 
     .. code:: python
 
-        @parfun(
-            split=all_arguments(df_by_group(by=["year", "month"])
+        @pf.parallel(
+            split=pf.all_arguments(pf.dataframe.by_group(by=["year", "month"]),
+            ...
         )
         def func(df_1: pd.DataFrame, df_2: pd.DataFrame):
             ...
