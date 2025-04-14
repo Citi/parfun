@@ -9,6 +9,7 @@ from parfun.entry_point import get_parallel_backend
 def parallel_map(func: Callable, *iterables, backend_session: Optional[BackendSession] = None) -> Iterable:
     """
     Similar to :py:func:`concurrent.futures.Executor.map()` but lazily consumes and returns the iterators' content as
+<<<<<<< HEAD
     worker nodes become available.
 
     .. code:: python
@@ -16,6 +17,15 @@ def parallel_map(func: Callable, *iterables, backend_session: Optional[BackendSe
         parallel_map(math.sqrt, [4, 9, 16, 25])  # [2.0, 3.0, 4.0, 5.0]
 
         parallel_map(operator.add, [10, 7, 15], [12, 15, 5])  # [22, 22, 20]
+=======
+    worker nodes get available.
+
+    .. code:: python
+
+        parallel_map(math.sqrt, [4, 9, 16, 25]))  # [2.0, 3.0, 4.0, 5.0]
+
+        parallel_map(int.__add__, [10, 7, 15], [12, 15, 5])  # [22, 22, 20]
+>>>>>>> 9394218 (Runs the function sequentially if the number of partitions is 1.)
 
 
     :param backend_session: the parallel backend session. If `None`, creates a new session from the current backend.
@@ -65,7 +75,11 @@ def parallel_starmap(
 
     .. code:: python
 
+<<<<<<< HEAD
         parallel_starmap(operator.add, [(10, 12), (7, 15), (15, 5)])  # [22, 22, 20]
+=======
+        parallel_starmap(math.__add__, [(10, 12), (7, 15), (15, 5)])  # [22, 22, 20]
+>>>>>>> 9394218 (Runs the function sequentially if the number of partitions is 1.)
 
     """
     yield from parallel_map(func, *zip(*iterable), backend_session=backend_session)
