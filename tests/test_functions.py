@@ -2,7 +2,7 @@ import time
 import unittest
 
 import parfun as pf
-from parfun.kernel.functions import parallel_map, parallel_starmap, parallel_timed_map
+from parfun.functions import parallel_map, parallel_starmap
 from tests.backend.utility import warmup_workers
 
 DELAY = 50_000_000  # 50 ms
@@ -28,15 +28,6 @@ class TestFunctions(unittest.TestCase):
         pf.set_parallel_backend("local_multiprocessing", max_workers=TestFunctions.N_WORKERS)
 
         warmup_workers(pf.get_parallel_backend(), TestFunctions.N_WORKERS)
-
-    def test_parallel_timed_map(self):
-        N = 10
-
-        values = list(parallel_timed_map(delayed_func, range(0, N)))
-
-        for i, value in enumerate(values):
-            self.assertEqual(value[0], func(i))
-            self.assertAlmostEqual(value[1], DELAY, delta=DELAY * 0.15)  # 15% tolerance
 
     def test_parallel_map(self):
         N = 10

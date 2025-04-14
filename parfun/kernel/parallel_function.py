@@ -1,20 +1,22 @@
+import collections
 import logging
 from inspect import Parameter, currentframe
-from itertools import repeat
-from typing import Callable, Iterable, Optional, Tuple, Union
+from itertools import chain
+from typing import Callable, Deque, Generator, Iterable, Optional, Tuple, Union
 
 import attrs
 
-from parfun.backend.mixins import BackendEngine
+from parfun.backend.mixins import BackendEngine, ProfiledFuture
 from parfun.entry_point import get_parallel_backend, set_parallel_backend_context
-from parfun.kernel.functions import parallel_timed_map
 from parfun.kernel.function_signature import FunctionSignature, NamedArguments
 from parfun.object import FunctionInputType, FunctionOutputType, PartitionType
 from parfun.partition.object import PartitionGenerator
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
-from parfun.profiler.functions import export_task_trace, print_profile_trace, timed_combine_with, timed_partition
-from parfun.profiler.object import PartitionedTaskTrace
+from parfun.profiler.functions import (
+    export_task_trace, print_profile_trace, timed_combine_with, timed_function, timed_partition,
+)
+from parfun.profiler.object import PartitionedTaskTrace, TraceTime
 
 
 @attrs.define
@@ -85,45 +87,38 @@ class ParallelFunction:
             logging.warning(f"no parallel backend engine set, run `{self.function_name}(...)` sequentially.")
             return self.function(*args, **kwargs)
 
-        # 1. Assigns a name to each argument based on the decorated function's signature.
+        # Assigns a name to each argument based on the decorated function's signature.
 
         named_args = self._function_signature.assign(args, kwargs)
 
-        # 2. Builds the partitions
+        # Initializes the partition generator
 
         non_partitioned_args, partition_generator = self.split(named_args)
 
-        with current_backend.session() as backend_session:
-            # 3. Preloads the non-partitioned arguments for each partition.
-            preloaded_non_partitioned_args = backend_session.preload_value(non_partitioned_args)
+        initial_partition_size, fixed_partition_size = self._get_user_partition_sizes(args, kwargs)
 
-            # 4. Generates the partition
+        partitions = timed_partition(
+            partition_generator, self._partition_size_estimator, initial_partition_size, fixed_partition_size
+        )
 
-            initial_partition_size, fixed_partition_size = self._get_user_partition_sizes(args, kwargs)
+        # Executes the function
 
-            partitions = timed_partition(
-                partition_generator, self._partition_size_estimator, initial_partition_size, fixed_partition_size
-            )
+        if allows_nested_tasks:
+            nested_backend = current_backend
+        else:
+            nested_backend = None
 
-            # 5. Submits the function to the parallel backend.
+        results = run_function_on_partitions(
+            self.function,
+            non_partitioned_args,
+            partitions,
+            current_backend,
+            nested_backend,
+        )
 
-            if allows_nested_tasks:
-                nested_backend = current_backend
-            else:
-                nested_backend = None
+        # Combines the results
 
-            results = parallel_timed_map(
-                apply_function,
-                repeat(self.function),
-                repeat(preloaded_non_partitioned_args),
-                partitions,
-                repeat(nested_backend),
-                backend_session=backend_session,
-            )
-
-            # 6. Combines results
-
-            combined_result, task_trace = timed_combine_with(self.combine_with, self._partition_size_estimator, results)
+        combined_result, task_trace = timed_combine_with(self.combine_with, self._partition_size_estimator, results)
 
         if self.profile:
             print_profile_trace(self.function, self.function_name, self._partition_size_estimator, task_trace)
@@ -159,20 +154,89 @@ def is_nested_parallelism():
 
     frame = currentframe()
     while frame is not None:
-        if frame.f_code.co_name == apply_function.__name__ and frame.f_code.co_filename == __file__:
+        if frame.f_code.co_name == run_function_in_worker.__name__ and frame.f_code.co_filename == __file__:
             return True
         frame = frame.f_back
     return False
 
 
-def apply_function(
+def run_function_on_partitions(
+    function: Callable[[PartitionType], FunctionOutputType],
+    non_partitioned_args: NamedArguments,
+    partitions: Generator[Tuple[NamedArguments, PartitionedTaskTrace], None, None],
+    backend: BackendEngine,
+    nested_backend: Optional[BackendEngine],
+) -> Generator[Tuple[FunctionOutputType, TraceTime], None, None]:
+    """
+    Applies the provided function on all non-partitioned and partitioned arguments using the provided backend.
+    """
+
+    # First, tries to get the first 2 partitions. If we get less than 2, we run the function sequentially to avoid
+    # any parallelism overhead.
+
+    iterator = iter(partitions)
+
+    first_values = []
+    try:
+        first_values.append(next(iterator))
+        first_values.append(next(iterator))
+    except StopIteration:
+        # Less than 2 values, run these sequentially and return
+        assert len(first_values) <= 2
+
+        for partitioned_args in first_values:
+            yield timed_function(
+                run_function_in_worker,
+                function,
+                non_partitioned_args,
+                partitioned_args,
+                backend=None,
+            )
+
+        return
+
+    # At least two values, submits these and the rest to the backend.
+
+    with backend.session() as session:
+        preloaded_non_partitioned_args = session.preload_value(non_partitioned_args)
+
+        # We take care of futures.pop() no longer required futures' references as we yield them, to avoid keeping no
+        # longer used results.
+        futures: Deque[ProfiledFuture] = collections.deque()
+
+        try:
+            for partitioned_args in chain(first_values, iterator):
+                futures.append(
+                    session.submit(
+                        run_function_in_worker,
+                        function,
+                        preloaded_non_partitioned_args,
+                        partitioned_args,
+                        nested_backend,
+                    )
+                )
+
+                # Yields any finished future from the head of the queue.
+                while len(futures) > 0 and futures[0].done():
+                    yield futures.popleft().result_and_duration()
+
+            # Yields the remaining results
+            while len(futures) > 0:
+                yield futures.popleft().result_and_duration()
+        finally:
+            # If any failure, cancels all unfinished tasks.
+            for future in futures:
+                future.cancel()
+
+
+def run_function_in_worker(
     function: Callable[[PartitionType], FunctionOutputType],
     non_partitioned_args: NamedArguments,
     partition: Tuple[NamedArguments, PartitionedTaskTrace],
     backend: Optional[BackendEngine] = None,
 ) -> Tuple[FunctionOutputType, PartitionedTaskTrace]:
     """
-    Runs the function with the partitioned object and its profiling trace.
+    Runs the function with the partitioned object, setting up the expected worker environment.
 
     :param non_partitioned_args: the function arguments that are identical for every function call.
     :param partition: the partitioned arguments and the associated partition task trace.
