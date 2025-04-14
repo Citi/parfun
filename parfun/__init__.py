@@ -1,6 +1,6 @@
 import sys
 
-import parfun.collection as collection
+import parfun.py_list as py_list
 from parfun.about import __version__
 from parfun.decorators import parallel, parfun
 from parfun.entry_point import get_parallel_backend, set_parallel_backend, set_parallel_backend_context
@@ -12,7 +12,7 @@ __all__ = (
     "parallel", "parfun",
     "get_parallel_backend", "set_parallel_backend", "set_parallel_backend_context",
     "all_arguments", "multiple_arguments", "per_argument",
-    "collection",
+    "py_list",
 )
 
 

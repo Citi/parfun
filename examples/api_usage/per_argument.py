@@ -16,7 +16,7 @@ import parfun as pf
 
 @pf.parallel(
     split=pf.per_argument(
-        factors=pf.collection.by_chunk,
+        factors=pf.py_list.by_chunk,
         dataframe=pf.dataframe.by_row,
     ),
     combine_with=pf.dataframe.concat,

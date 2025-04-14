@@ -14,7 +14,7 @@ import parfun as pf
 
 
 @pf.parallel(
-    split=pf.all_arguments(pf.collection.by_chunk),
+    split=pf.all_arguments(pf.py_list.by_chunk),
     combine_with=sum,
     profile=True,
     trace_export="parallel_sum_trace.csv",

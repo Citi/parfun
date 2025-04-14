@@ -18,7 +18,7 @@ def per_argument(
         @pf.parallel(
             split=pf.per_argument(
                 df=pf.dataframe.by_row,
-                xs=pf.collection.by_chunk,
+                xs=pf.py_list.by_chunk,
             )
         )
         def func(df: pd.DataFrame, xs: List, constant: int):

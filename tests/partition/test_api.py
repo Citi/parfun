@@ -19,7 +19,7 @@ class TestPartitionAPI(unittest.TestCase):
                 yield values[i * PARTITION_SIZE : (i + 1) * PARTITION_SIZE],
 
         partitioning_function = pf.per_argument(
-            values=pf.collection.by_chunk,
+            values=pf.py_list.by_chunk,
             df=pf.dataframe.by_row,
             custom=custom_chunk_generator
         )
@@ -77,7 +77,7 @@ class TestPartitionAPI(unittest.TestCase):
         PARTITION_SIZE = 3
         N_PARTITIONS = math.ceil(N / PARTITION_SIZE)
 
-        partitioning_function = pf.all_arguments(pf.collection.by_chunk)
+        partitioning_function = pf.all_arguments(pf.py_list.by_chunk)
 
         xs = list(range(0, N))
         ys = [x * x for x in xs]

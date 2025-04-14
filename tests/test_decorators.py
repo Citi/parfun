@@ -159,7 +159,7 @@ class TestDecorators(unittest.TestCase):
 
 
 @pf.parallel(
-    split=pf.multiple_arguments(("col1", "col2", "col3"), pf.collection.by_chunk),
+    split=pf.multiple_arguments(("col1", "col2", "col3"), pf.py_list.by_chunk),
     combine_with=sum,
     fixed_partition_size=100
 )
@@ -180,7 +180,7 @@ def _find_all_nth_primes(values: pd.DataFrame) -> pd.DataFrame:
 
 
 @pf.parallel(
-    split=pf.multiple_arguments(("a", "b"), pf.collection.by_chunk),
+    split=pf.multiple_arguments(("a", "b"), pf.py_list.by_chunk),
     combine_with=pf.dataframe.concat
 )
 def _calculate_some_df(a: List[int], b: List[float], constant_df: pd.DataFrame) -> pd.DataFrame:
@@ -222,25 +222,25 @@ def _delayed_sum(values: Iterable[float]) -> float:
 
 
 @pf.parallel(
-    split=pf.per_argument(values=pf.collection.by_chunk),
-    combine_with=pf.collection.concat
+    split=pf.per_argument(values=pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat
 )
 def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tuple[int, int]]:
     parent_pid = os.getpid()
     child_input = [parent_pid for _ in range(0, child_input_size)]
 
-    return pf.collection.concat(_nested_child_function(child_input) for _ in values)
+    return pf.py_list.concat(_nested_child_function(child_input) for _ in values)
 
 
-@pf.parallel(split=pf.per_argument(parent_pids=pf.collection.by_chunk), combine_with=pf.collection.concat)
+@pf.parallel(split=pf.per_argument(parent_pids=pf.py_list.by_chunk), combine_with=pf.py_list.concat)
 def _nested_child_function(parent_pids: List[int]) -> List[Tuple[int, int]]:
     child_pid = os.getpid()
     return [(parent_pid, child_pid) for parent_pid in parent_pids]
 
 
 @pf.parallel(
-    split=pf.per_argument(values=pf.collection.by_chunk),
-    combine_with=pf.collection.concat,
+    split=pf.per_argument(values=pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
     fixed_partition_size=10
 )
 def _fixed_partition_size(values: List) -> List:
@@ -249,7 +249,7 @@ def _fixed_partition_size(values: List) -> List:
     return values
 
 
-@pf.parallel(split=pf.per_argument(a=pf.collection.by_chunk, b=pf.dataframe.by_row), combine_with=pf.dataframe.concat)
+@pf.parallel(split=pf.per_argument(a=pf.py_list.by_chunk, b=pf.dataframe.by_row), combine_with=pf.dataframe.concat)
 def _per_argument_sum(a: List, b: pd.DataFrame) -> pd.DataFrame:
     """Multiples the dataframe values by the corresponding list items."""
 

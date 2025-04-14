@@ -1,10 +1,10 @@
 import warnings
 
-from parfun.collection import by_chunk
+from parfun.py_list import by_chunk
 
 
 warnings.warn(
-    "parfun.partition.collection is deprecated and will be removed in a future version, use parfun.collection.",
+    "parfun.partition.collection is deprecated and will be removed in a future version, use parfun.py_list.",
     DeprecationWarning
 )
 

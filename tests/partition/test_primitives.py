@@ -24,7 +24,7 @@ class TestPartitionPrimitives(unittest.TestCase):
         xs = list(range(0, N))
         df = pd.DataFrame({"a": xs, "b": xs})
 
-        gen_1 = pf.collection.by_chunk
+        gen_1 = pf.py_list.by_chunk
         gen_2 = pf.dataframe.by_row
         gen_3 = cast(SimplePartitionIterator, repeat(math.pi))
 
@@ -68,7 +68,7 @@ class TestPartitionPrimitives(unittest.TestCase):
         # Smart generators
 
         ys = list(with_partition_size(
-            partition_map(mapped_function, pf.collection.by_chunk(xs)), partition_size=PARTITION_SIZE)
+            partition_map(mapped_function, pf.py_list.by_chunk(xs)), partition_size=PARTITION_SIZE)
         )
         self.assertEqual(len(ys), n_partitions)
         self.assertSequenceEqual(list(chain.from_iterable([y[0] for y in ys])), [x * x for x in xs])

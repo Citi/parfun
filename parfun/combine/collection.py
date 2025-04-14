@@ -1,10 +1,10 @@
 import warnings
 
-from parfun.collection import concat
+from parfun.py_list import concat
 
 
 warnings.warn(
-    "parfun.combine.collection is deprecated and will be removed in a future version, use parfun.collection.",
+    "parfun.combine.collection is deprecated and will be removed in a future version, use parfun.py_list.",
     DeprecationWarning
 )
 

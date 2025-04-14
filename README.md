@@ -40,9 +40,9 @@ import parfun as pf
 
 @pf.parallel(
     split=pf.per_argument(
-        values=pf.collection.by_chunk
+        values=pf.py_list.by_chunk
     ),
-    combine_with=pf.collection.concat,
+    combine_with=pf.py_list.concat,
 )
 def list_pow(values: List[float], factor: float) -> List[float]:
     return [v**factor for v in values]

@@ -23,7 +23,7 @@ def sum_counters(counters: Iterable[Counter[str]]) -> Counter[str]:
 
 @pf.parallel(
     split=pf.per_argument(
-        lines=pf.collection.by_chunk
+        lines=pf.py_list.by_chunk
     ),
     combine_with=sum_counters,
 )

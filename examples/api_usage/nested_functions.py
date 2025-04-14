@@ -15,8 +15,8 @@ import parfun as pf
 
 
 @pf.parallel(
-    split=pf.all_arguments(pf.collection.by_chunk),
-    combine_with=pf.collection.concat,
+    split=pf.all_arguments(pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
 )
 def add_vectors(vec_a: List, vec_b: List) -> List:
     """Add two vectors, element-wise."""
@@ -24,8 +24,8 @@ def add_vectors(vec_a: List, vec_b: List) -> List:
 
 
 @pf.parallel(
-    split=pf.all_arguments(pf.collection.by_chunk),
-    combine_with=pf.collection.concat,
+    split=pf.all_arguments(pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
 )
 def add_matrices(mat_a: List[List], mat_b: List[List]) -> List[List]:
     """Add two matrices, row by row."""

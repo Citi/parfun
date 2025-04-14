@@ -48,12 +48,12 @@ Partitioning
 .. autofunction:: parfun.partition.utility.with_partition_size
 
 
-.. _section-collections:
+.. _section-lists:
 
-Collections
------------
+Python lists
+------------
 
-.. automodule:: parfun.collection
+.. automodule:: parfun.py_list
     :members:
 
 
