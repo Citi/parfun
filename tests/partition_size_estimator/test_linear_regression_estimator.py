@@ -1,17 +1,17 @@
 import random
 import unittest
 
-from parfun.entry_point import set_parallel_backend
+import parfun as pf
 from parfun.partition_size_estimator.linear_regression_estimator import LinearRegessionEstimator
 from parfun.profiler.object import PartitionedTaskTrace
 
 
 class TestLinearRegressionEstimator(unittest.TestCase):
     def setUp(self) -> None:
-        set_parallel_backend("local_multiprocessing")
+        pf.set_parallel_backend("local_multiprocessing")
 
     def tearDown(self) -> None:
-        set_parallel_backend("none")
+        pf.set_parallel_backend("none")
 
     def test_parallelism_efficiency(self):
         estimator = LinearRegessionEstimator()

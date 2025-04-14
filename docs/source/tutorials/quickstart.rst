@@ -50,14 +50,14 @@ The library relies on a registered computing backend to schedule and distribute 
 processes.
 
 **Before using the library, the user should select the backend instance**. This can either be done process wise
-with :py:func:`~parfun.entry_point.set_parallel_backend` or temporarily using a Python context manager with
-:py:func:`~parfun.entry_point.set_parallel_backend_context`.
+with :py:func:`~parfun.set_parallel_backend` or temporarily using a Python context manager with
+:py:func:`~parfun.set_parallel_backend_context`.
 
 .. literalinclude:: ../../../examples/api_usage/backend_setup.py
     :language: python
-    :start-at: from
+    :start-at: import parfun as pf
 
-See :py:func:`~parfun.entry_point.set_parallel_backend` for a description of the available backend options.
+See :py:func:`~parfun.set_parallel_backend` for a description of the available backend options.
 
 
 Your first parallel function
@@ -68,28 +68,28 @@ calculated in parallel, **splitting the computation by country**.
 
 .. literalinclude:: ../../../examples/portfolio_metrics/main.py
     :language: python
-    :start-at: from
+    :start-at: from typing import List
 
-In this example, the :py:func:`~parfun.decorators.parfun` **decorator** is configure to *parallelize the execution of*
+In this example, the :py:func:`~parfun.parallel` **decorator** is configure to *parallelize the execution of*
 ``relative_metrics()`` *by country*, and then to concat the resulting parallel sub-results:
 
 .. literalinclude:: ../../../examples/portfolio_metrics/main.py
     :language: python
-    :start-at: @parfun
+    :start-at: @pf.parallel
     :end-at: def relative_metrics
 
 First, we tell the parallel engine how to partition the data with the ``split`` parameter. Note that we can safely
 split the calculation over countries, as the function itself processes these countries independently.
 
-- We use :py:func:`~parfun.partition.api.per_argument` to tell the parallel engine which arguments to partition on. In
+- We use :py:func:`~parfun.per_argument` to tell the parallel engine which arguments to partition on. In
   the example, we will only partition on the ``portfolio`` argument, and we don't touch the ``columns`` argument.
 
-- We use :py:func:`~parfun.partition.dataframe.df_by_group` to specify that the portfolio dataframe can be partitioned
+- We use :py:func:`~parfun.dataframe.by_group` to specify that the portfolio dataframe can be partitioned
   over it's ``country`` column.
 
 Finally, the parallel engine needs to know how to *combine the results* of the partitioned calls to
 ``relative_metrics()``. This is done with the help of the ``combine_with`` parameter. In our example, we just concat the
-result dataframes with :py:func:`~parfun.combine.dataframe.df_concat`.
+result dataframes with :py:func:`~parfun.dataframe.concat`.
 
 When executed, the parallel engine with automatically take care of executing the function in parallel, which
 would schematically look like this:
@@ -105,21 +105,19 @@ tasks**. It's important to specify a partitioning strategy that leverage this.
 Partitioning functions
 ----------------------
 
-As seen in the example here-above, the ``@parfun`` decorator accepts a partitioning function (``split``).
+As seen in the example above, the ``@parallel`` decorator accepts a partitioning function (``split``).
 
-Parfun provides an :doc:`extensive set of partitioning function and helpers</api/partition>`.
-
-Previously, we applied a single partitioning function (:py:func:`~parfun.partition.dataframe.df_by_group`) on a
-single argument. However, we could also use :py:func:`~parfun.partition.api.per_argument` to apply different
+Previously, we applied a single partitioning function (:py:func:`~parfun.dataframe.by_group`) on a
+single argument. However, we could also use :py:func:`~parfun.per_argument` to apply different
 partitioning functions on various parameters:
 
 .. literalinclude:: ../../../examples/api_usage/per_argument.py
     :language: python
-    :start-at: from
+    :start-at: from typing import List
 
-We are using two partitioning functions, :py:func:`~parfun.partition.collection.list_by_chunk` and
-:py:func:`~parfun.partition.dataframe.df_by_row`. These splits the arguments in equally sized partitions. It's
-semantically equivalent to iterating all these partitioned arguments simultaneously:
+We are using two partitioning functions, :py:func:`~parfun.py_list.by_chunk` and :py:func:`~parfun.dataframe.by_row`.
+These splits the arguments in equally sized partitions. It's semantically equivalent to iterating all these partitioned
+arguments simultaneously:
 
 
 .. code-block:: python
@@ -131,21 +129,20 @@ semantically equivalent to iterating all these partitioned arguments simultaneou
 
 
 Alternatively, it might be sometimes desired to run the same partitioning function on all parameters simultaneously with
-:py:func:`~parfun.partition.api.all_arguments`:
+:py:func:`~parfun.all_arguments`:
 
 .. literalinclude:: ../../../examples/api_usage/all_arguments.py
     :language: python
-    :start-at: from
+    :start-at: import pandas as pd
 
 
 Combining functions
 -------------------
 
-In addition to the partitioning function, the ``@parfun`` decorator requires a combining function (``combine_with``).
+In addition to the partitioning function, the ``@parallel`` decorator requires a combining function (``combine_with``).
 
-The library provides useful combining functions to deal with collections and dataframes:
-
-:doc:`Explore combing functions </api/combine>`
+The library provides useful partitioning and combining functions to deal with :ref:`Python lists <section-lists>`
+and :ref:`Pandas dataframes <section-dataframes>`.
 
 
 Custom partitioning and combining generators
@@ -156,7 +153,7 @@ partitioning and combing functions:
 
 .. literalinclude:: ../../../examples/api_usage/custom_generators.py
     :language: python
-    :start-at: from
+    :start-at: from typing import Generator, Iterable, Tuple
 
 To work properly, custom partitioning generators should:
 
@@ -180,7 +177,7 @@ The library tries to automatically determine the optimal size for the parallelly
 
 .. literalinclude:: ../../../examples/api_usage/partition_size.py
     :language: python
-    :start-at: import
+    :start-at: import numpy as np
 
 .. note::
 
@@ -199,7 +196,7 @@ Parfun functions can be safely called from other Parfun functions.
 
 .. literalinclude:: ../../../examples/api_usage/nested_functions.py
     :language: python
-    :start-at: import
+    :start-at: import pprint
 
 
 Profiling
@@ -213,7 +210,7 @@ can be used get profiling metrics about the execution of a parallel function.
 
 .. literalinclude:: ../../../examples/api_usage/profiling.py
     :language: python
-    :start-at: from
+    :start-at: from typing import List
 
 Setting ``profile`` to ``True`` returns a performance summarizing board:
 

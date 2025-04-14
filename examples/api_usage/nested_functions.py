@@ -11,25 +11,21 @@ import pprint
 import random
 from typing import List
 
-from parfun import parfun
-from parfun.entry_point import set_parallel_backend_context
-from parfun.partition.api import all_arguments
-from parfun.partition.collection import list_by_chunk
-from parfun.combine.collection import list_concat
+import parfun as pf
 
 
-@parfun(
-    split=all_arguments(list_by_chunk),
-    combine_with=list_concat,
+@pf.parallel(
+    split=pf.all_arguments(pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
 )
 def add_vectors(vec_a: List, vec_b: List) -> List:
     """Add two vectors, element-wise."""
     return [a + b for a, b in zip(vec_a, vec_b)]
 
 
-@parfun(
-    split=all_arguments(list_by_chunk),
-    combine_with=list_concat,
+@pf.parallel(
+    split=pf.all_arguments(pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
 )
 def add_matrices(mat_a: List[List], mat_b: List[List]) -> List[List]:
     """Add two matrices, row by row."""
@@ -48,7 +44,7 @@ if __name__ == "__main__":
     print("B =")
     pprint.pprint(mat_b)
 
-    with set_parallel_backend_context("local_multiprocessing"):
+    with pf.set_parallel_backend_context("local_multiprocessing"):
         result = add_matrices(mat_a, mat_b)
 
     print("A + B =")

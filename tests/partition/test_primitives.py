@@ -8,8 +8,7 @@ try:
 except ImportError:
     raise ImportError("Pandas dependency missing. Use `pip install 'parfun[pandas]'` to install Pandas.")
 
-from parfun.partition.collection import list_by_chunk
-from parfun.partition.dataframe import df_by_group, df_by_row
+import parfun as pf
 from parfun.partition.object import SimplePartitionIterator
 from parfun.partition.primitives import partition_flatmap, partition_map, partition_zip
 from parfun.partition.utility import with_partition_size
@@ -25,8 +24,8 @@ class TestPartitionPrimitives(unittest.TestCase):
         xs = list(range(0, N))
         df = pd.DataFrame({"a": xs, "b": xs})
 
-        gen_1 = list_by_chunk
-        gen_2 = df_by_row
+        gen_1 = pf.py_list.by_chunk
+        gen_2 = pf.dataframe.by_row
         gen_3 = cast(SimplePartitionIterator, repeat(math.pi))
 
         ys = list(with_partition_size(partition_zip(gen_1(xs), gen_2(df), gen_3), partition_size=PARTITION_SIZE))
@@ -68,7 +67,9 @@ class TestPartitionPrimitives(unittest.TestCase):
 
         # Smart generators
 
-        ys = list(with_partition_size(partition_map(mapped_function, list_by_chunk(xs)), partition_size=PARTITION_SIZE))
+        ys = list(with_partition_size(
+            partition_map(mapped_function, pf.py_list.by_chunk(xs)), partition_size=PARTITION_SIZE)
+        )
         self.assertEqual(len(ys), n_partitions)
         self.assertSequenceEqual(list(chain.from_iterable([y[0] for y in ys])), [x * x for x in xs])
 
@@ -96,7 +97,7 @@ class TestPartitionPrimitives(unittest.TestCase):
         # Partition by year group, then by chunks of 7 days.
         partitions = list(
             with_partition_size(
-                partition_flatmap(custom_partition_by_week, df_by_group(by="year")(df)), partition_size=7
+                partition_flatmap(custom_partition_by_week, pf.dataframe.by_group(by="year")(df)), partition_size=7
             )
         )
 

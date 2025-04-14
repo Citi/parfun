@@ -7,13 +7,13 @@ Usage:
     $ python -m examples.api_usage.backend_setup
 """
 
-from parfun.entry_point import set_parallel_backend, set_parallel_backend_context
+import parfun as pf
 
 
 if __name__ == "__main__":
     # Set the parallel backend process-wise.
-    set_parallel_backend("local_multiprocessing")
+    pf.set_parallel_backend("local_multiprocessing")
 
     # Set the parallel backend with a Python context.
-    with set_parallel_backend_context("scaler_remote", scheduler_address="tcp://scaler.cluster:1243"):
+    with pf.set_parallel_backend_context("scaler_remote", scheduler_address="tcp://scaler.cluster:1243"):
         ...  # Will run the parallel tasks over a remotely setup Scaler cluster.

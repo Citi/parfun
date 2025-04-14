@@ -3,6 +3,7 @@ A decorator that helps users run their functions in parallel.
 """
 
 import importlib
+import warnings
 from functools import wraps
 from typing import Callable, Iterable, Optional, Tuple, Union
 
@@ -14,7 +15,7 @@ from parfun.partition_size_estimator.linear_regression_estimator import LinearRe
 from parfun.partition_size_estimator.mixins import PartitionSizeEstimator
 
 
-def parfun(
+def parallel(
     split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]],
     combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
     initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
@@ -28,11 +29,11 @@ def parfun(
 
     .. code:: python
 
-        @parfun(
-            split=per_argument(
-                values=lists_by_chunk,
+        @pf.parallel(
+            split=pf.per_argument(
+                values=pf.py_list.by_chunk,
             ),
-            combine_with=lists_concat
+            combine_with=pf.py_list.concat
         )
         def multiply_by_constant(values: Iterable[int], constant: int):
             return [v * constant for v in values]
@@ -40,7 +41,7 @@ def parfun(
         # This would be functionally equivalent to running the function inside a single for loop:
 
         results = []
-        for partition in lists_by_chunk(values):
+        for partition in pf.py_list.by_chunk(values):
             results.append(multiply_by_constant(partition, constant))
 
         return combine_with(results)
@@ -110,3 +111,25 @@ def parfun(
         return wrapped
 
     return decorator
+
+
+def parfun(
+    split: Callable[[NamedArguments], Tuple[NamedArguments, PartitionGenerator[NamedArguments]]],
+    combine_with: Callable[[Iterable[FunctionOutputType]], FunctionOutputType],
+    initial_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
+    fixed_partition_size: Optional[Union[int, Callable[[FunctionInputType], int]]] = None,
+    profile: bool = False,
+    trace_export: Optional[str] = None,
+    partition_size_estimator_factory: Callable[[], PartitionSizeEstimator] = LinearRegessionEstimator,
+) -> Callable:
+    warnings.warn("parfun() is deprecated and will be removed in a future version.", DeprecationWarning)
+
+    return parallel(
+        split=split,
+        combine_with=combine_with,
+        initial_partition_size=initial_partition_size,
+        fixed_partition_size=fixed_partition_size,
+        profile=profile,
+        trace_export=trace_export,
+        partition_size_estimator_factory=partition_size_estimator_factory,
+    )

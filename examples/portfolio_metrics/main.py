@@ -11,16 +11,12 @@ from typing import List
 
 import pandas as pd
 
-from parfun import parfun
-from parfun.combine.dataframe import df_concat
-from parfun.partition.api import per_argument
-from parfun.partition.dataframe import df_by_group
-from parfun.entry_point import set_parallel_backend_context
+import parfun as pf
 
 
-@parfun(
-    split=per_argument(portfolio=df_by_group(by="country")),
-    combine_with=df_concat,
+@pf.parallel(
+    split=pf.per_argument(portfolio=pf.dataframe.by_group(by="country")),
+    combine_with=pf.dataframe.concat,
 )
 def relative_metrics(portfolio: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     """
@@ -54,7 +50,7 @@ if __name__ == "__main__":
         "workforce": [161000, 39850, 650951, 240000, 104503]
     })
 
-    with set_parallel_backend_context("local_multiprocessing"):
+    with pf.set_parallel_backend_context("local_multiprocessing"):
         metrics = relative_metrics(portfolio, ["market_cap", "revenue"])
 
     print(metrics)

@@ -11,13 +11,13 @@ def with_partition_size(
     Runs a partitioning generator without requiring the partition size estimator.
 
     This function uses the provided partition size input to feed the partitioning generator through Python's
-    :py:meth:`generator.send` method, simulating the parallel function's behaviour.
+    :py:meth:`generator.send` method, simulating the parallel function's behavior.
 
     .. code:: python
 
-        # Runs the `df_by_row` partitioning function with a random partition size generator.
+        # Runs the `by_row` partitioning function with a random partition size generator.
         with_partition_size(
-            df_by_row(df_1, df_2),
+            pf.dataframe.by_row(df_1, df_2),
             partition_size=lambda: random.randint(1, 10)
         )
 

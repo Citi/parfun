@@ -3,10 +3,8 @@ import unittest
 
 import pandas as pd
 
+import parfun as pf
 from parfun.kernel.function_signature import NamedArguments
-from parfun.partition.api import all_arguments, multiple_arguments, per_argument
-from parfun.partition.collection import list_by_chunk
-from parfun.partition.dataframe import df_by_group, df_by_row
 from parfun.partition.utility import with_partition_size
 
 
@@ -20,7 +18,11 @@ class TestPartitionAPI(unittest.TestCase):
             for i in range(0, N_PARTITIONS):
                 yield values[i * PARTITION_SIZE : (i + 1) * PARTITION_SIZE],
 
-        partitioning_function = per_argument(values=list_by_chunk, df=df_by_row, custom=custom_chunk_generator)
+        partitioning_function = pf.per_argument(
+            values=pf.py_list.by_chunk,
+            df=pf.dataframe.by_row,
+            custom=custom_chunk_generator
+        )
 
         xs = [x for x in range(0, N)]
         df = pd.DataFrame({"x^2": [x * x for x in xs]})
@@ -46,7 +48,7 @@ class TestPartitionAPI(unittest.TestCase):
             self.assertSequenceEqual(partition["custom"], partition_xs)
 
     def test_multiple_arguments(self):
-        partitioning_function = multiple_arguments(("df_1", "df_2"), df_by_group(by="year"))
+        partitioning_function = pf.multiple_arguments(("df_1", "df_2"), pf.dataframe.by_group(by="year"))
 
         df_1 = pd.DataFrame({"year": [2020, 2021, 2020, 2020, 2022], "values": range(0, 5)})
 
@@ -75,7 +77,7 @@ class TestPartitionAPI(unittest.TestCase):
         PARTITION_SIZE = 3
         N_PARTITIONS = math.ceil(N / PARTITION_SIZE)
 
-        partitioning_function = all_arguments(list_by_chunk)
+        partitioning_function = pf.all_arguments(pf.py_list.by_chunk)
 
         xs = list(range(0, N))
         ys = [x * x for x in xs]
