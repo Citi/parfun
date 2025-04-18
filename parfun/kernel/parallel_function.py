@@ -87,11 +87,11 @@ class ParallelFunction:
             logging.warning(f"no parallel backend engine set, run `{self.function_name}(...)` sequentially.")
             return self.function(*args, **kwargs)
 
-        # Assigns a name to each argument based on the decorated function's signature.
+        # Assign a name to each argument based on the decorated function's signature.
 
         named_args = self._function_signature.assign(args, kwargs)
 
-        # Initializes the partition generator
+        # Initialize the partition generator
 
         non_partitioned_args, partition_generator = self.split(named_args)
 
@@ -101,7 +101,7 @@ class ParallelFunction:
             partition_generator, self._partition_size_estimator, initial_partition_size, fixed_partition_size
         )
 
-        # Executes the function
+        # Execute the function
 
         if allows_nested_tasks:
             nested_backend = current_backend
@@ -116,7 +116,7 @@ class ParallelFunction:
             nested_backend,
         )
 
-        # Combines the results
+        # Combine the results
 
         combined_result, task_trace = timed_combine_with(self.combine_with, self._partition_size_estimator, results)
 
@@ -220,7 +220,7 @@ def run_function_on_partitions(
                 while len(futures) > 0 and futures[0].done():
                     yield futures.popleft().result_and_duration()
 
-            # Yields the remaining results
+            # Yields the remaining results.
             while len(futures) > 0:
                 yield futures.popleft().result_and_duration()
         finally:
