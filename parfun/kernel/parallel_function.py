@@ -201,7 +201,8 @@ def run_function_on_partitions(
         preloaded_non_partitioned_args = session.preload_value(non_partitioned_args)
 
         # We take care of futures.pop() no longer required futures' references as we yield them, to avoid keeping no
-        # longer used results.
+        # longer used results. Not doing this will prevent the Python's GC to free the yielded results once these have
+        # been processed by the consuming function.
         futures: Deque[ProfiledFuture] = collections.deque()
 
         try:
