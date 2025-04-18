@@ -52,10 +52,10 @@ class DaskSession(BackendSession):
                 exception = underlying_future.exception()
 
                 if exception is None:
-                    function_duration, result = underlying_future.result()
+                    result, function_duration = underlying_future.result()
                 else:
-                    function_duration = 0
                     result = None
+                    function_duration = 0
 
                 self._concurrent_task_guard.release()
 
