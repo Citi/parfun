@@ -53,7 +53,5 @@ if __name__ == "__main__":
 
     with pf.set_parallel_backend_context("local_multiprocessing"):
         print(fixed_partition_size_sum(dataframe))
-
         print(initial_partition_size_sum(dataframe))
-
         print(computed_partition_size_sum(dataframe))
