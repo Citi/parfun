@@ -42,3 +42,11 @@ if __name__ == "__main__":
     # 0  10   40
     # 1  40  100
     # 2  90  180
+
+    results = []
+    for a in range(len(factors)):
+        for b in range(len(dataframe)):
+            results.append(dataframe.iloc[a].multiply(factors.iloc[b], axis=0))
+
+    result = pd.concat(results, axis=0)
+    print(result)
