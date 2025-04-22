@@ -31,11 +31,11 @@ Not all tasks can be easily parallelized:
 Setup and backend selection
 ---------------------------
 
-First, install the ``Parfun`` package from PyPI using any compatible package manager:
+First, install the ``parfun`` package from PyPI using any compatible package manager:
 
 .. code:: bash
 
-    pip install Parfun
+    pip install parfun
 
 
 The above command will **only install the base package**. This is suitable for using the ``multiprocessing`` backend, however
@@ -44,18 +44,18 @@ install the `scaler`, `dask`, or `pandas` extras as required:
 
 .. code:: bash
 
-    pip install "Parfun[dask,scaler,pandas]"
+    pip install "parfun[dask,scaler,pandas]"
 
 **Initializing the library**
 
-Before using Parfun, the backend must be initialized. This can either be done with :py:func:`~Parfun.set_parallel_backend`
-or in a scoped context manager using :py:func:`~Parfun.set_parallel_backend_context`.
+Before using Parfun, the backend must be initialized. This can either be done with :py:func:`~parfun.set_parallel_backend`
+or in a scoped context manager using :py:func:`~parfun.set_parallel_backend_context`.
 
 .. literalinclude:: ../../../examples/api_usage/backend_setup.py
     :language: python
-    :start-at: import Parfun as pf
+    :start-at: import parfun as pf
 
-See :py:func:`~Parfun.set_parallel_backend` for a description of the available backend options.
+See :py:func:`~parfun.set_parallel_backend` for a description of the available backend options.
 
 
 Your first parallel function
@@ -68,7 +68,7 @@ calculated in parallel, **splitting the computation by country**.
     :language: python
     :start-at: from typing import List
 
-In this example, the :py:func:`~Parfun.parallel` **decorator** *parallelizes the execution of*
+In this example, the :py:func:`~parfun.parallel` **decorator** *parallelizes the execution of*
 ``relative_metrics()`` *by country*, and then reduces the results by concatenating them:
 
 .. literalinclude:: ../../../examples/portfolio_metrics/main.py
@@ -79,15 +79,15 @@ In this example, the :py:func:`~Parfun.parallel` **decorator** *parallelizes the
 We tell the parallel engine how to partition the data with the ``split`` parameter. Note that we can safely
 split the calculation over countries, as the function itself processes these countries independently.
 
-- We use :py:func:`~Parfun.per_argument` to tell the parallel engine which arguments to partition on. In
+- We use :py:func:`~parfun.per_argument` to tell the parallel engine which arguments to partition on. In
   the example, we will only partition on the ``portfolio`` argument, and we don't touch the ``columns`` argument.
 
-- We use :py:func:`~Parfun.dataframe.by_group` to specify that the portfolio dataframe can be partitioned
+- We use :py:func:`~parfun.dataframe.by_group` to specify that the portfolio dataframe can be partitioned
   over its ``country`` column.
 
 Finally, Parfun needs to know how to *combine the results* of the partitioned calls to
 ``relative_metrics()``. This is done with the ``combine_with`` parameter. In our example, we concatenate the
-result dataframes with :py:func:`~Parfun.dataframe.concat`.
+result dataframes with :py:func:`~parfun.dataframe.concat`.
 
 Parfun handles executing the function in parallel and collection the results. We can represent this computation visually:
 
@@ -101,15 +101,15 @@ Partitioning functions
 
 As seen in the example above, the ``@parallel`` decorator accepts a partitioning function (``split``).
 
-Previously, we applied a single partitioning function (:py:func:`~Parfun.dataframe.by_group`) on a
-single argument. However, we can also use :py:func:`~Parfun.per_argument` to apply partitioning
+Previously, we applied a single partitioning function (:py:func:`~parfun.dataframe.by_group`) on a
+single argument. However, we can also use :py:func:`~parfun.per_argument` to apply partitioning
 to multiple arguments.
 
 .. literalinclude:: ../../../examples/api_usage/per_argument.py
     :language: python
     :start-at: from typing import List
 
-Here we are using two partitioning functions, :py:func:`~Parfun.py_list.by_chunk` and :py:func:`~Parfun.dataframe.by_row`.
+Here we are using two partitioning functions, :py:func:`~parfun.py_list.by_chunk` and :py:func:`~parfun.dataframe.by_row`.
 These split the arguments in to equally sized partitions. It's semantically equivalent to the following code:
 
 
@@ -121,7 +121,7 @@ These split the arguments in to equally sized partitions. It's semantically equi
         multiply_by_row(factors[begin:end], dataframe.iloc[begin:end])
 
 
-Sometimes it might be desirable to partition all of the arguments the same way, this can be done with :py:func:`~Parfun.all_arguments`:
+Sometimes it might be desirable to partition all of the arguments the same way, this can be done with :py:func:`~parfun.all_arguments`:
 
 .. literalinclude:: ../../../examples/api_usage/all_arguments.py
     :language: python
@@ -135,7 +135,7 @@ In addition to the partitioning function, the ``@parallel`` decorator requires a
 collect results and handle the reduction stage of map-reduce.
 
 Parfun provides useful combining functions for handling :ref:`Python lists <section-lists>`
-and :ref:`Pandas dataframes <section-dataframes>`, such as: :py:func:`~Parfun.py_list.concat` and :py:func:`~Parfun.dataframe.concat`.
+and :ref:`Pandas dataframes <section-dataframes>`, such as: :py:func:`~parfun.py_list.concat` and :py:func:`~parfun.dataframe.concat`.
 
 
 Custom partitioning and combining functions

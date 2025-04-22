@@ -3,7 +3,7 @@
     <img src="https://github.com/citi.png" alt="Citi" width="80" height="80">
   </a>
 
-  <h3 align="center">Citi/parfun</h3>
+  <h3 align="center">Citi/Parfun</h3>
 
   <p align="center">
     Lightweight parallelization library for Python.
@@ -45,8 +45,8 @@ import parfun as pf
     # merge the output by concatenating the results (reduce)
     combine_with=pf.py_list.concat,
 )
-# compute powers of a list of numbers
 def list_pow(values: List[float], factor: float) -> List[float]:
+    """compute powers of a list of numbers"""
     return [v**factor for v in values]
 
 
