@@ -35,7 +35,7 @@ def profile(timer_function: Callable[[], TraceTime] = time.process_time_ns):
     profile_duration.value = timer_function() - starts_at
 
 
-def timed_function(fn: Callable, *args, **kwargs) -> Tuple[TraceTime, Any]:
+def timed_function(fn: Callable, *args, **kwargs) -> Tuple[Any, TraceTime]:
     """
     Runs the provided function with the specified args, and returns its execution CPU time and its returned value.
     """
@@ -43,7 +43,7 @@ def timed_function(fn: Callable, *args, **kwargs) -> Tuple[TraceTime, Any]:
     with profile() as duration:
         result = fn(*args, **kwargs)
 
-    return duration.value, result
+    return result, duration.value
 
 
 def timed_partition(

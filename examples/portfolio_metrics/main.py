@@ -24,7 +24,7 @@ def relative_metrics(portfolio: pd.DataFrame, columns: List[str]) -> pd.DataFram
     values, grouped by country.
     """
 
-    output = portfolio.copy()
+    output = portfolio.copy()  # do not modify the input dataframe.
 
     for country in output["country"].unique():
         for column in columns:
@@ -42,12 +42,12 @@ def relative_metrics(portfolio: pd.DataFrame, columns: List[str]) -> pd.DataFram
 
 if __name__ == "__main__":
     portfolio = pd.DataFrame({
-        "company": ["Apple", "ASML", "Volkswagen", "Citigroup", "Tencent"],
-        "industry": ["technology", "technology", "manufacturing", "banking", "manufacturing"],
-        "country": ["US", "NL", "DE", "US", "CN"],
-        "market_cap": [2828000000000, 236000000000, 55550000000, 80310000000, 345000000000],
-        "revenue": [397000000000, 27180000000, 312000000000, 79840000000, 79000000000],
-        "workforce": [161000, 39850, 650951, 240000, 104503]
+        "company": ["Apple", "Citigroup", "ASML", "Volkswagen", "Tencent"],
+        "industry": ["technology", "banking", "technology", "manufacturing", "manufacturing"],
+        "country": ["US", "US", "NL", "DE", "CN"],
+        "market_cap": [2828000000000, 80310000000, 236000000000, 55550000000, 345000000000],
+        "revenue": [397000000000, 79840000000, 27180000000, 312000000000, 79000000000],
+        "workforce": [161000, 240000, 39850, 650951, 104503]
     })
 
     with pf.set_parallel_backend_context("local_multiprocessing"):

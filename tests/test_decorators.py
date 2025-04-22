@@ -100,8 +100,8 @@ class TestDecorators(unittest.TestCase):
     def test_parallel_nested_calls(self):
         """Makes sure that the decorators handles nested parallel function calls."""
 
-        PARENT_INPUT_SIZE = 10
-        CHILD_INPUT_SIZE = 10
+        PARENT_INPUT_SIZE = 4
+        CHILD_INPUT_SIZE = 4
 
         INPUT_DATA = list(range(0, PARENT_INPUT_SIZE))
 
@@ -156,6 +156,18 @@ class TestDecorators(unittest.TestCase):
         parallel = _per_argument_sum(xs, df)
 
         self.assertTrue(sequential.equals(parallel))
+
+    def test_single_partition_is_sequential(self):
+        # If the decorated function receives a single partition as input, it should run sequentially in the calling
+        # process.
+
+        calling_pid = os.getpid()
+
+        single_partition_pids = _parallel_getpid([1])
+        self.assertTrue(all(pid == calling_pid for pid in single_partition_pids))
+
+        multiple_partition_pids = _parallel_getpid(range(0, 1000))
+        self.assertTrue(all(pid != calling_pid for pid in multiple_partition_pids))
 
 
 @pf.parallel(
@@ -223,7 +235,8 @@ def _delayed_sum(values: Iterable[float]) -> float:
 
 @pf.parallel(
     split=pf.per_argument(values=pf.py_list.by_chunk),
-    combine_with=pf.py_list.concat
+    combine_with=pf.py_list.concat,
+    fixed_partition_size=1,
 )
 def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tuple[int, int]]:
     parent_pid = os.getpid()
@@ -232,7 +245,11 @@ def _nested_parent_function(values: List[int], child_input_size: int) -> List[Tu
     return pf.py_list.concat(_nested_child_function(child_input) for _ in values)
 
 
-@pf.parallel(split=pf.per_argument(parent_pids=pf.py_list.by_chunk), combine_with=pf.py_list.concat)
+@pf.parallel(
+    split=pf.per_argument(parent_pids=pf.py_list.by_chunk),
+    combine_with=pf.py_list.concat,
+    fixed_partition_size=1
+)
 def _nested_child_function(parent_pids: List[int]) -> List[Tuple[int, int]]:
     child_pid = os.getpid()
     return [(parent_pid, child_pid) for parent_pid in parent_pids]
@@ -262,6 +279,11 @@ def _per_argument_sum(a: List, b: pd.DataFrame) -> pd.DataFrame:
         result.iloc[i, :] *= v
 
     return result
+
+
+@pf.parallel(split=pf.all_arguments(pf.py_list.by_chunk), combine_with=pf.py_list.concat)
+def _parallel_getpid(tasks: List) -> List[int]:
+    return [os.getpid() for _ in tasks]
 
 
 if __name__ == "__main__":
